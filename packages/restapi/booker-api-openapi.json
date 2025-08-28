@@ -1,0 +1,812 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Luna Booker API",
+    "description": "API for third-party contact registration into HubSpot via Luna backend.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://getluna.com/api/booker",
+      "description": "Production"
+    },
+    {
+      "url": "https://marketing-site.alpha.getluna.com/api/booker",
+      "description": "Alpha (Testing)"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Token"
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "example": {
+              "data": null,
+              "message": "API Client Unauthorized",
+              "exceptionMessage": "Authorization header is missing or invalid",
+              "errors": []
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Validation failed",
+        "content": {
+          "application/json": {
+            "example": {
+              "data": null,
+              "message": "Please check the sent values",
+              "exceptionMessage": "Complete the required fields",
+              "errors": {
+                "email": [
+                  "Email is required"
+                ],
+                "password": [
+                  "Password is required"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/check-availability": {
+      "post": {
+        "summary": "Check service availability",
+        "description": "Checks if services are available for a given ZIP code.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "zip"
+                ],
+                "properties": {
+                  "zip": {
+                    "type": "string",
+                    "pattern": "^\\d{5}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Availability info"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/register-email-not-serviceable": {
+      "post": {
+        "summary": "Register email (no coverage)",
+        "description": "Registers the user's email and location when the service is not available.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "zip"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "zip": {
+                    "type": "string",
+                    "pattern": "^\\d{5}$"
+                  },
+                  "gclid": {
+                    "type": "string",
+                    "maxLength": 256
+                  },
+                  "hutk": {
+                    "type": "string",
+                    "maxLength": 256
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/register-contact-not-serviceable": {
+      "post": {
+        "summary": "Register full contact (no coverage)",
+        "description": "Registers full contact info for users outside service areas.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "firstname",
+                  "lastname",
+                  "phone",
+                  "phone_number_type"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "firstname": {
+                    "type": "string"
+                  },
+                  "lastname": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "pattern": "^\\(\\d{3}\\) \\d{3}-\\d{4}$"
+                  },
+                  "phone_number_type": {
+                    "type": "string",
+                    "enum": [
+                      "mobile",
+                      "landline",
+                      "fixed VoIP",
+                      "non-fixed VoIP",
+                      "toll-free"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/register-contact": {
+      "post": {
+        "summary": "Register full contact (coverage available)",
+        "description": "Registers full contact info when coverage is available.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "firstname",
+                  "lastname",
+                  "phone",
+                  "zip",
+                  "phone_number_type"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "firstname": {
+                    "type": "string"
+                  },
+                  "lastname": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "pattern": "^\\(\\d{3}\\) \\d{3}-\\d{4}$"
+                  },
+                  "zip": {
+                    "type": "string",
+                    "pattern": "^\\d{5}$"
+                  },
+                  "phone_number_type": {
+                    "type": "string",
+                    "enum": [
+                      "mobile",
+                      "landline",
+                      "fixed VoIP",
+                      "non-fixed VoIP",
+                      "toll-free"
+                    ]
+                  },
+                  "gclid": {
+                    "type": "string",
+                    "maxLength": 256
+                  },
+                  "hutk": {
+                    "type": "string",
+                    "maxLength": 256
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/register-contact-alt-phone": {
+      "post": {
+        "summary": "Register alternate phone",
+        "description": "Registers an alternate phone number for a user.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "phone",
+                  "phone_number_type"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "pattern": "^\\(\\d{3}\\) \\d{3}-\\d{4}$"
+                  },
+                  "phone_number_type": {
+                    "type": "string",
+                    "enum": [
+                      "mobile",
+                      "landline",
+                      "fixed VoIP",
+                      "non-fixed VoIP",
+                      "toll-free"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/register-contact-address": {
+      "post": {
+        "summary": "Register contact address",
+        "description": "Registers the street address of the user.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "address"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "address": {
+                    "type": "string"
+                  },
+                  "apt_ste": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/register-contact-dob": {
+      "post": {
+        "summary": "Register date of birth",
+        "description": "Registers the user's date of birth in MM-DD-YYYY format.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "date_of_birth"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "date_of_birth": {
+                    "type": "string",
+                    "pattern": "^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])-\\d{4}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/is-receiving-home-health": {
+      "post": {
+        "summary": "Register home health status",
+        "description": "Records whether the user is receiving home health services.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "currently_receiving_home_health_services"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "currently_receiving_home_health_services": {
+                    "type": "string",
+                    "enum": [
+                      true,
+                      false
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/register-home-health-discharge-date": {
+      "post": {
+        "summary": "Register home health discharge date",
+        "description": "Registers the user's discharge date in MM-DD-YYYY format.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "home_health_discharge_date"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "home_health_discharge_date": {
+                    "type": "string",
+                    "pattern": "^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])-\\d{4}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thanks for submitting"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/register-affected-body-part": {
+      "post": {
+        "summary": "Use insurance decision",
+        "description": "Indicates whether the user intends to use insurance to cover the visit.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "use_insurance_for_visit"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "use_insurance_for_visit": {
+                    "type": "string",
+                    "enum": [
+                      true,
+                      false
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      },
+      "/insurance-cover-visit": null
+    },
+    "/charge-your-visit": {
+      "post": {
+        "summary": "Confirm self-pay visit",
+        "description": "Confirms the user's intent to proceed with a self-pay visit.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Redirect for self-pay"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/insurance-provider": {
+      "post": {
+        "summary": "Submit insurance information",
+        "description": "Registers insurance provider info including optional plan and ID.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "insurance"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "insurance": {
+                    "type": "string"
+                  },
+                  "other_insurance": {
+                    "type": "string"
+                  },
+                  "insurance_plan": {
+                    "type": "string"
+                  },
+                  "insurance_member_id": {
+                    "type": "string"
+                  },
+                  "supplemental_insurance": {
+                    "type": "string",
+                    "enum": [
+                      true,
+                      false
+                    ]
+                  },
+                  "with_coverage": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Insurance saved"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/accept-self-say": {
+      "post": {
+        "summary": "Accept self-pay",
+        "description": "Confirms the user's acceptance of self-pay and redirects.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Redirect to booking"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/request-callback": {
+      "post": {
+        "summary": "Request callback",
+        "description": "Registers a request for a callback from the Luna call center.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Callback registered"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/validate-email": {
+      "post": {
+        "summary": "Validate email",
+        "description": "Validates the structure and deliverability of an email address.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email validation result"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/phone-lookup": {
+      "post": {
+        "summary": "Lookup phone number",
+        "description": "Validates and retrieves carrier and line type information.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "phone"
+                ],
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "pattern": "^\\(\\d{3}\\) \\d{3}-\\d{4}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phone lookup result"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        }
+      }
+    },
+    "/get-longest-wait-time": {
+      "post": {
+        "summary": "Get longest wait time",
+        "description": "Retrieves the longest wait time per Talkdesk ring group.",
+        "requestBody": {
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "description": "Wait time result"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "description": "External service failure"
+          }
+        }
+      }
+    }
+  }
+}
