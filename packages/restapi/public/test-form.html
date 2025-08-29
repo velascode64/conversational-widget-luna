@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Check Endpoint</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #333;
+        }
+        textarea {
+            width: 100%;
+            height: 400px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .loading {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        h3 {
+            margin-top: 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test API Check Endpoint</h1>
+    
+    <div class="container">
+        <div class="panel">
+            <h3>Request Body (JSON)</h3>
+            <textarea id="requestBody">{
+  "email": "john.doe@example.com",
+  "insurance": "Blue Cross Blue Shield",
+  "other_insurance": "Aetna Secondary",
+  "insurance_plan": null,
+  "insurance_member_id": null,
+  "supplemental_insurance": "Yes",
+  "use_insurance_for_visit": "Yes",
+  "zip": "90210",
+  "address": "123 Main Street",
+  "apt_ste": null,
+  "patient_injury": "Lower back pain",
+  "patient_injury_other_details": "Chronic pain from work-related injury",
+  "phone": "(555) 123-4567",
+  "phone_number_type": "mobile",
+  "currently_receiving_home_health_services": "No",
+  "home_health_discharge_date": "03-15-2024",
+  "firstname": "John",
+  "lastname": "Doe",
+  "date_of_birth": "01-15-1985"
+}</textarea>
+            <button onclick="sendRequest()">Send POST Request</button>
+            <button onclick="testInvalid()">Test Invalid Data</button>
+            <button onclick="testMissingRequired()">Test Missing Required</button>
+        </div>
+        
+        <div class="panel">
+            <h3>Response</h3>
+            <div id="response" class="response" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        async function sendRequest() {
+            const requestBody = document.getElementById('requestBody').value;
+            const responseDiv = document.getElementById('response');
+            
+            responseDiv.className = 'response loading';
+            responseDiv.style.display = 'block';
+            responseDiv.textContent = 'Sending request...';
+            
+            try {
+                const response = await fetch('http://localhost:3002/api/check', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: requestBody
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    responseDiv.className = 'response success';
+                    responseDiv.textContent = `✅ Status: ${response.status}\n\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    responseDiv.className = 'response error';
+                    responseDiv.textContent = `❌ Status: ${response.status}\n\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                responseDiv.className = 'response error';
+                responseDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        function testInvalid() {
+            const invalidData = {
+                "email": "invalid-email",  // Invalid email format
+                "insurance": "Blue Cross Blue Shield",
+                "other_insurance": null,
+                "insurance_plan": null,
+                "insurance_member_id": null,
+                "supplemental_insurance": "Maybe",  // Invalid enum value
+                "use_insurance_for_visit": "Yes",
+                "zip": "902",  // Too short
+                "address": "123 Main Street",
+                "apt_ste": null,
+                "patient_injury": "Lower back pain",
+                "patient_injury_other_details": null,
+                "phone": "555-123-4567",  // Wrong format
+                "phone_number_type": "smartphone",  // Invalid type
+                "currently_receiving_home_health_services": "No",
+                "home_health_discharge_date": "2024-03-15",  // Wrong date format
+                "firstname": "John",
+                "lastname": "Doe",
+                "date_of_birth": "1985-01-15"  // Wrong date format
+            };
+            
+            document.getElementById('requestBody').value = JSON.stringify(invalidData, null, 2);
+        }
+        
+        function testMissingRequired() {
+            const missingData = {
+                "email": "john.doe@example.com",
+                // Missing insurance
+                "other_insurance": null,
+                "insurance_plan": null,
+                "insurance_member_id": null,
+                "supplemental_insurance": "Yes",
+                // Missing use_insurance_for_visit
+                "zip": "90210",
+                // Missing address
+                "apt_ste": null,
+                // Missing patient_injury
+                "patient_injury_other_details": null,
+                // Missing phone
+                "phone_number_type": "mobile",
+                // Missing currently_receiving_home_health_services
+                "home_health_discharge_date": "03-15-2024",
+                // Missing firstname
+                // Missing lastname
+                "date_of_birth": "01-15-1985"
+            };
+            
+            document.getElementById('requestBody').value = JSON.stringify(missingData, null, 2);
+        }
+    </script>
+</body>
+</html>

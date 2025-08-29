@@ -1,15 +1,45 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import fs from 'fs';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3002;
+
+// Validation functions
+function validateEmail(email) {
+  if (!email || typeof email !== 'string') return false;
+  if (email.length > 100) return false;
+  return /^[^<>]+@[^<>]+\.[^<>]+$/.test(email);
+}
+
+function validateString(value, maxLength, required = true) {
+  if (required && (!value || typeof value !== 'string')) return false;
+  if (!required && value === null) return true;
+  if (typeof value !== 'string') return false;
+  return value.length <= maxLength;
+}
+
+function validateZip(zip) {
+  if (!zip || typeof zip !== 'string') return false;
+  if (zip.length !== 5) return false;
+  return /^\d+$/.test(zip);
+}
+
+function validatePhone(phone) {
+  if (!phone || typeof phone !== 'string') return false;
+  return /^\(\d{3}\) \d{3}-\d{4}$/.test(phone);
+}
+
+function validateDate(date) {
+  if (!date || typeof date !== 'string') return false;
+  return /^(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])\-[0-9]{4}$/.test(date);
+}
+
+function validateInArray(value, validValues, required = true) {
+  if (required && !value) return false;
+  if (!required && value === null) return true;
+  return validValues.includes(value);
+}
 
 // Middleware
 app.use(cors());
@@ -31,151 +61,110 @@ app.use((req, res, next) => {
   next();
 });
 
-// Mock API endpoints for the chat widget
+// POST /api/check - Validate form data
+app.post('/api/check', (req, res) => {
+  const data = req.body;
+  const errors = [];
 
-// Get chat configuration
-app.get('/api/chats/:chatId', (req, res) => {
-  const { chatId } = req.params;
-  const apiKey = req.headers['x-api-key'];
-  
-  console.log(`📍 GET /api/chats/${chatId}`);
-  console.log(`🔑 API Key: ${apiKey}`);
-  
-  res.json({
-    id: chatId,
-    name: "Test Chat",
-    description: "Mock chat for testing",
-    model: "gpt-4",
-    temperature: 0.7,
-    max_tokens: 1000,
-    welcome_message: "Hello! How can I help you today?",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  });
-});
+  console.log(`📋 Validating form data...`);
 
-// Get widget configuration
-app.get('/api/chats/:chatId/widget', (req, res) => {
-  const { chatId } = req.params;
-  const apiKey = req.headers['x-api-key'];
-  
-  console.log(`📍 GET /api/chats/${chatId}/widget`);
-  console.log(`🔑 API Key: ${apiKey}`);
-  
-  res.json({
-    primaryColor: "#000000",
-    secondaryColor: "#fefcf8",
-    showWelcomeMessage: true,
-    position: "bottom-right",
-    buttonText: "Chat with us",
-    headerTitle: "Support Chat"
-  });
-});
+  // Required string fields with max length
+  if (!validateEmail(data.email)) {
+    errors.push('email: required, max 100 chars, valid email format');
+  }
+  if (!validateString(data.insurance, 100)) {
+    errors.push('insurance: required, max 100 chars');
+  }
+  if (!validateString(data.firstname, 100)) {
+    errors.push('firstname: required, max 100 chars');
+  }
+  if (!validateString(data.lastname, 100)) {
+    errors.push('lastname: required, max 100 chars');
+  }
+  if (!validateString(data.address, 255)) {
+    errors.push('address: required, max 255 chars');
+  }
+  if (!validateString(data.patient_injury, 100)) {
+    errors.push('patient_injury: required, max 100 chars');
+  }
 
-// Get welcome message
-app.get('/api/chats/:chatId/welcome_message', (req, res) => {
-  const { chatId } = req.params;
-  const apiKey = req.headers['x-api-key'];
-  
-  console.log(`📍 GET /api/chats/${chatId}/welcome_message`);
-  console.log(`🔑 API Key: ${apiKey}`);
-  
-  res.json({
-    content: "👋 Welcome! I'm here to help. What can I do for you today?",
-    type: "text"
-  });
-});
+  // Nullable string fields
+  if (!validateString(data.other_insurance, 100, false)) {
+    errors.push('other_insurance: max 100 chars if provided');
+  }
+  if (!validateString(data.insurance_plan, 100, false)) {
+    errors.push('insurance_plan: max 100 chars if provided');
+  }
+  if (!validateString(data.insurance_member_id, 50, false)) {
+    errors.push('insurance_member_id: max 50 chars if provided');
+  }
+  if (!validateString(data.apt_ste, 50, false)) {
+    errors.push('apt_ste: max 50 chars if provided');
+  }
+  if (!validateString(data.patient_injury_other_details, 150, false)) {
+    errors.push('patient_injury_other_details: max 150 chars if provided');
+  }
 
-// Create a new conversation
-app.post('/api/chats/:chatId/conversations', (req, res) => {
-  const { chatId } = req.params;
-  const apiKey = req.headers['x-api-key'];
-  
-  console.log(`📍 POST /api/chats/${chatId}/conversations`);
-  console.log(`🔑 API Key: ${apiKey}`);
-  
-  const conversationId = `conv_${Date.now()}`;
-  
-  res.json({
-    id: conversationId,
-    chat_id: chatId,
-    created_at: new Date().toISOString(),
-    status: "active"
-  });
-});
+  // Required_if validations
+  if (data.insurance === 'Other' && !validateString(data.other_insurance, 100)) {
+    errors.push('other_insurance: required when insurance is "Other"');
+  }
+  if (data.patient_injury === 'Other' && !validateString(data.patient_injury_other_details, 150)) {
+    errors.push('patient_injury_other_details: required when patient_injury is "Other"');
+  }
 
-// Get conversation messages
-app.get('/api/chats/:chatId/conversations/:conversationId/messages', (req, res) => {
-  const { chatId, conversationId } = req.params;
-  const apiKey = req.headers['x-api-key'];
-  
-  console.log(`📍 GET /api/chats/${chatId}/conversations/${conversationId}/messages`);
-  console.log(`🔑 API Key: ${apiKey}`);
-  
-  res.json({
-    messages: []
-  });
-});
+  // Zip validation
+  if (!validateZip(data.zip)) {
+    errors.push('zip: required, exactly 5 digits');
+  }
 
-// Stream completion endpoint (simulated streaming)
-app.post('/api/chats/:chatId/conversations/:conversationId/completion_stream', (req, res) => {
-  const { chatId, conversationId } = req.params;
-  const { content } = req.body;
-  const apiKey = req.headers['x-api-key'];
+  // Phone validation
+  if (!validatePhone(data.phone)) {
+    errors.push('phone: required, format (XXX) XXX-XXXX');
+  }
+
+  // Date validations
+  if (!validateDate(data.date_of_birth)) {
+    errors.push('date_of_birth: required, format MM-DD-YYYY');
+  }
+  if (!validateDate(data.home_health_discharge_date)) {
+    errors.push('home_health_discharge_date: required, format MM-DD-YYYY');
+  }
+
+  // Enum validations
+  if (!validateInArray(data.supplemental_insurance, ['Yes', 'No'], false)) {
+    errors.push('supplemental_insurance: must be "Yes" or "No" if provided');
+  }
+  if (!validateInArray(data.use_insurance_for_visit, ['Yes', 'No'])) {
+    errors.push('use_insurance_for_visit: required, must be "Yes" or "No"');
+  }
+  if (!validateInArray(data.currently_receiving_home_health_services, ['Yes', 'No'])) {
+    errors.push('currently_receiving_home_health_services: required, must be "Yes" or "No"');
+  }
+
+  // Phone number type validation
+  const validPhoneTypes = ['mobile', 'landline', 'fixed VoIP', 'non-fixed VoIP', 'toll-free'];
+  if (!validateString(data.phone_number_type, 20) || !validPhoneTypes.includes(data.phone_number_type)) {
+    errors.push('phone_number_type: required, must be one of: mobile, landline, fixed VoIP, non-fixed VoIP, toll-free');
+  }
+
+  if (errors.length > 0) {
+    console.log(`❌ Validation failed with ${errors.length} errors:`);
+    errors.forEach(error => console.log(`   - ${error}`));
+    
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: errors
+    });
+  }
+
+  console.log(`✅ All validations passed successfully`);
   
-  console.log(`📍 POST /api/chats/${chatId}/conversations/${conversationId}/completion_stream`);
-  console.log(`🔑 API Key: ${apiKey}`);
-  console.log(`💬 User message: ${content}`);
-  
-  // Set headers for Server-Sent Events
-  res.writeHead(200, {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive'
-  });
-  
-  // Simulated response chunks
-  const responseChunks = [
-    "I received your message: \"",
-    content,
-    "\". ",
-    "This is a mock response ",
-    "from the test server. ",
-    "The real API would provide ",
-    "actual AI-generated responses. ",
-    "\n\n",
-    "Your request details:\n",
-    `- Chat ID: ${chatId}\n`,
-    `- Conversation ID: ${conversationId}\n`,
-    `- API Key: ${apiKey?.substring(0, 10)}...`
-  ];
-  
-  let index = 0;
-  
-  // Send chunks with delay to simulate streaming
-  const interval = setInterval(() => {
-    if (index < responseChunks.length) {
-      const chunk = {
-        choices: [{
-          delta: {
-            content: responseChunks[index]
-          }
-        }]
-      };
-      
-      res.write(`data: ${JSON.stringify(chunk)}\n\n`);
-      index++;
-    } else {
-      // Send done signal
-      res.write(`data: [DONE]\n\n`);
-      clearInterval(interval);
-      res.end();
-    }
-  }, 100);
-  
-  // Clean up on client disconnect
-  req.on('close', () => {
-    clearInterval(interval);
+  res.status(200).json({
+    success: true,
+    message: 'All validations passed',
+    data: data
   });
 });
 
