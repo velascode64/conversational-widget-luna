@@ -5,6 +5,9 @@ import morgan from 'morgan';
 const app = express();
 const PORT = process.env.PORT || 3002;
 
+// Luna API Configuration
+const LUNA_API_DOMAIN = process.env.LUNA_API_DOMAIN || 'https://marketing-site.alpha.getluna.com';
+
 // Validation functions
 function validateEmail(email) {
   if (!email || typeof email !== 'string') return false;
@@ -62,10 +65,20 @@ app.use((req, res, next) => {
 });
 
 // POST /api/booker/check-availability - Check ZIP code coverage
-app.post('/api/booker/check-availability', (req, res) => {
+app.post('/api/booker/check-availability', async (req, res) => {
   const { zip } = req.body;
+  const authHeader = req.headers.authorization;
   
   console.log(`📍 Checking availability for ZIP: ${zip}`);
+  console.log(`🔑 Authorization header: ${authHeader ? 'Present' : 'Missing'}`);
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log(`❌ Missing or invalid Authorization header`);
+    return res.status(401).json({
+      success: false,
+      message: 'Authorization header with Bearer token required'
+    });
+  }
   
   if (!validateZip(zip)) {
     console.log(`❌ Invalid ZIP code format: ${zip}`);
@@ -75,24 +88,49 @@ app.post('/api/booker/check-availability', (req, res) => {
     });
   }
   
-  // Mock coverage check - ZIPs starting with 9 have coverage
-  const hasAvailability = zip.startsWith('9');
-  
-  console.log(`${hasAvailability ? '✅' : '❌'} ZIP ${zip} ${hasAvailability ? 'has' : 'does not have'} coverage`);
-  
-  res.status(200).json({
-    success: true,
-    hasAvailability: hasAvailability,
-    zip: zip,
-    message: hasAvailability ? 'Service available in this area' : 'Service not available in this area'
-  });
+  try {
+    console.log(`🔄 Proxying to Luna API: ${LUNA_API_DOMAIN}/api/booker/check-availability`);
+    
+    const response = await fetch(`${LUNA_API_DOMAIN}/api/booker/check-availability`, {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ zip })
+    });
+
+    const data = await response.json();
+    
+    console.log(`${response.status === 200 ? '✅' : '❌'} Luna API Response:`, data);
+    
+    res.status(response.status).json(data);
+    
+  } catch (error) {
+    console.error('❌ Error calling Luna API:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error checking availability',
+      error: error.message
+    });
+  }
 });
 
 // POST /api/booker/register-email-not-serviceable - Register email when no coverage
-app.post('/api/booker/register-email-not-serviceable', (req, res) => {
+app.post('/api/booker/register-email-not-serviceable', async (req, res) => {
   const { email, zip } = req.body;
+  const authHeader = req.headers.authorization;
   
   console.log(`📧 Registering email for future notification - ZIP: ${zip}`);
+  console.log(`🔑 Authorization header: ${authHeader ? 'Present' : 'Missing'}`);
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log(`❌ Missing or invalid Authorization header`);
+    return res.status(401).json({
+      success: false,
+      message: 'Authorization header with Bearer token required'
+    });
+  }
   
   const errors = [];
   
@@ -113,24 +151,49 @@ app.post('/api/booker/register-email-not-serviceable', (req, res) => {
     });
   }
   
-  console.log(`✅ Email registered for notifications: ${email} (ZIP: ${zip})`);
-  
-  res.status(200).json({
-    success: true,
-    message: 'Email registered for future service notifications',
-    data: {
-      email: email,
-      zip: zip,
-      registeredAt: new Date().toISOString()
-    }
-  });
+  try {
+    console.log(`🔄 Proxying to Luna API: ${LUNA_API_DOMAIN}/api/booker/register-email-not-serviceable`);
+    
+    const response = await fetch(`${LUNA_API_DOMAIN}/api/booker/register-email-not-serviceable`, {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, zip })
+    });
+
+    const data = await response.json();
+    
+    console.log(`${response.status === 200 ? '✅' : '❌'} Luna API Response:`, data);
+    
+    res.status(response.status).json(data);
+    
+  } catch (error) {
+    console.error('❌ Error calling Luna API:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error registering email',
+      error: error.message
+    });
+  }
 });
 
 // POST /api/booker/register-contact - Register contact when coverage is available
-app.post('/api/booker/register-contact', (req, res) => {
+app.post('/api/booker/register-contact', async (req, res) => {
   const { email, firstname, lastname, phone, zip, phone_number_type } = req.body;
+  const authHeader = req.headers.authorization;
   
   console.log(`👤 Registering contact for ZIP: ${zip}`);
+  console.log(`🔑 Authorization header: ${authHeader ? 'Present' : 'Missing'}`);
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log(`❌ Missing or invalid Authorization header`);
+    return res.status(401).json({
+      success: false,
+      message: 'Authorization header with Bearer token required'
+    });
+  }
   
   const errors = [];
   
@@ -168,29 +231,50 @@ app.post('/api/booker/register-contact', (req, res) => {
     });
   }
   
-  console.log(`✅ Contact registered successfully: ${firstname} ${lastname}`);
-  
-  res.status(200).json({
-    success: true,
-    message: 'Contact registered successfully',
-    data: {
-      email,
-      firstname,
-      lastname,
-      phone,
-      zip,
-      phone_number_type,
-      registeredAt: new Date().toISOString()
-    }
-  });
+  try {
+    console.log(`🔄 Proxying to Luna API: ${LUNA_API_DOMAIN}/api/booker/register-contact`);
+    
+    const response = await fetch(`${LUNA_API_DOMAIN}/api/booker/register-contact`, {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, firstname, lastname, phone, zip, phone_number_type })
+    });
+
+    const data = await response.json();
+    
+    console.log(`${response.status === 200 ? '✅' : '❌'} Luna API Response:`, data);
+    
+    res.status(response.status).json(data);
+    
+  } catch (error) {
+    console.error('❌ Error calling Luna API:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error registering contact',
+      error: error.message
+    });
+  }
 });
 
 // POST /api/booker/batch - Submit complete booking data
-app.post('/api/booker/batch', (req, res) => {
+app.post('/api/booker/batch', async (req, res) => {
   const data = req.body;
+  const authHeader = req.headers.authorization;
   const errors = [];
 
   console.log(`📋 Processing batch booking data...`);
+  console.log(`🔑 Authorization header: ${authHeader ? 'Present' : 'Missing'}`);
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log(`❌ Missing or invalid Authorization header`);
+    return res.status(401).json({
+      success: false,
+      message: 'Authorization header with Bearer token required'
+    });
+  }
 
   // REQUIRED field - email
   if (!validateEmail(data.email)) {
@@ -204,9 +288,7 @@ app.post('/api/booker/batch', (req, res) => {
     errors.push('zip: must be exactly 5 digits if provided');
   }
   
-  if (!validateString(data.booker_api_source, 100, false)) {
-    errors.push('booker_api_source: max 100 chars if provided');
-  }
+  // booker_api_source validation - skip validation, API handles it
   
   if (!validateString(data.firstname, 100, false)) {
     errors.push('firstname: max 100 chars if provided');
@@ -240,9 +322,7 @@ app.post('/api/booker/batch', (req, res) => {
     errors.push('insurance: max 100 chars if provided');
   }
   
-  if (!validateString(data.other_insurance, 100, false)) {
-    errors.push('other_insurance: max 100 chars if provided');
-  }
+  // other_insurance validation - skip validation, API handles it
   
   if (!validateString(data.insurance_plan, 100, false)) {
     errors.push('insurance_plan: max 100 chars if provided');
@@ -270,9 +350,7 @@ app.post('/api/booker/batch', (req, res) => {
     errors.push('use_insurance_for_visit: must be "Yes" or "No" if provided');
   }
   
-  if (!validateInArray(data.self_pay_opted_on_booker, ['Yes', 'No'], false)) {
-    errors.push('self_pay_opted_on_booker: must be "Yes" or "No" if provided');
-  }
+  // self_pay_opted_on_booker validation - skip validation, API handles it
   
   if (!validateInArray(data.supplemental_insurance, ['Yes', 'No'], false)) {
     errors.push('supplemental_insurance: must be "Yes" or "No" if provided');
@@ -322,6 +400,9 @@ app.post('/api/booker/batch', (req, res) => {
     console.log(`❌ Batch validation failed with ${errors.length} errors:`);
     errors.forEach(error => console.log(`   - ${error}`));
     
+    // Log the problematic fields for debugging
+    console.log('🔍 Debugging validation errors:')
+    
     return res.status(400).json({
       success: false,
       message: 'Validation failed',
@@ -329,13 +410,32 @@ app.post('/api/booker/batch', (req, res) => {
     });
   }
 
-  console.log(`✅ Batch booking data validated successfully`);
-  
-  res.status(200).json({
-    data: {
-      message: 'Information was saved'
-    }
-  });
+  try {
+    console.log(`🔄 Proxying to Luna API: ${LUNA_API_DOMAIN}/api/booker/batch`);
+    
+    const response = await fetch(`${LUNA_API_DOMAIN}/api/booker/batch`, {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+
+    const responseData = await response.json();
+    
+    console.log(`${response.status === 200 ? '✅' : '❌'} Luna API Response:`, responseData);
+    
+    res.status(response.status).json(responseData);
+    
+  } catch (error) {
+    console.error('❌ Error calling Luna API:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error processing batch booking',
+      error: error.message
+    });
+  }
 });
 
 // Catch all other endpoints
