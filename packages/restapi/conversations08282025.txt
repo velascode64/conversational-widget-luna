@@ -1,0 +1,248 @@
+Test:08/28/2025
+
+🟢 Usuario:
+
+hey
+
+🤖 BOT (DEV 2.0):
+
+Hello! 👋 THIS IS DEV 2.0
+:wave: Hey there, welcome to Luna! Let me know if you need help booking a physical therapist or have any questions—I’m here to help!
+	•	:calendar: I’d like to book a physical therapy appointment.
+	•	:credit_card: Can you help me understand my bill?
+	•	:repeat: I need to reschedule or cancel my session.
+	•	:question: I have a general question about your services.
+
+How can I assist you today?
+
+⸻
+
+🟢 Usuario:
+
+my zip code is 94123
+
+🤖 BOT:
+
+Yes, we currently provide service in 94123.
+Would you like to start booking a physical therapy appointment, or do you have any other questions?
+
+⸻
+
+🟢 Usuario:
+
+yes+
+
+🤖 BOT:
+
+Great! Let’s get started with booking your in-home physical therapy appointment.
+What is your email address?
+
+⸻
+
+🟢 Usuario:
+
+aaa@aaa.com
+
+🤖 BOT:
+
+Thank you! What is your phone number?
+
+⸻
+
+🟢 Usuario:
+
+4157913394
+
+🤖 BOT:
+
+Thanks! Just to confirm, is this a mobile phone number? (We need a mobile number for appointment updates.)
+
+⸻
+
+🟢 Usuario:
+
+yes
+
+🤖 BOT:
+
+Perfect, thank you! What is your full name? (Please provide both first and last name.)
+
+⸻
+
+🟢 Usuario:
+
+Andres Andrade
+
+🤖 BOT:
+
+Thank you, Andres Andrade! What is your street address? (Please include the house/building number and street name.)
+
+⸻
+
+🟢 Usuario:
+
+1600 fairview
+
+🤖 BOT:
+
+Thank you! Do you have an apartment or suite number to add, or should I continue with just “1600 Fairview”?
+
+⸻
+
+🟢 Usuario:
+
+no
+
+🤖 BOT:
+
+Got it! What is your date of birth? (Please use MM-DD-YYYY format.)
+
+⸻
+
+🟢 Usuario:
+
+12-12-1991
+
+🤖 BOT:
+
+Thank you! Are you currently receiving home health services or being treated by an in-home nurse?
+
+⸻
+
+🟢 Usuario:
+
+nope
+
+🤖 BOT:
+
+Thanks for confirming! What type of injury are you experiencing?
+
+⸻
+
+🟢 Usuario:
+
+car accident my leg get broke
+
+🤖 BOT:
+
+Thank you for sharing. For personalized medical advice, please consult a licensed provider.
+Would you like to use insurance to cover your visit?
+
+⸻
+
+🟢 Usuario:
+
+yes
+
+🤖 BOT:
+
+Great! Who is your insurance provider?
+
+⸻
+
+🟢 Usuario:
+
+saftywings
+
+🤖 BOT:
+
+Thank you! What is your insurance plan (if applicable)?
+
+⸻
+
+🟢 Usuario:
+
+na
+
+🤖 BOT:
+
+No problem! What is your insurance member ID? (If you don’t have one, just let me know.)
+
+⸻
+
+🟢 Usuario:
+
+don’t remember
+
+🤖 BOT:
+
+That’s okay! Do you have any supplemental insurance? (Yes or No)
+
+⸻
+
+🟢 Usuario:
+
+No
+
+⸻
+
+🤖 BOT:
+
+Thank you! Here’s a summary of the information you’ve provided:
+
+ZIP code: 94123
+Email: aaa@aaa.com
+Mobile phone: (415) 791-3394
+Name: Andres Andrade
+Address: 1600 Fairview
+Date of birth: 12-12-1991
+Not currently receiving home health services
+Injury: Car accident, broken leg
+Insurance provider: saftywings
+Insurance plan: n/a
+Member ID: not provided
+Supplemental insurance: No
+
+Do you confirm all the above information is correct?
+
+⸻
+
+🟢 Usuario:
+
+yes
+
+⸻
+
+🤖 BOT:
+
+Would you like to request an instant call to complete your booking, or would you prefer to schedule a call for a specific day and time?
+
+⸻
+
+🟢 Usuario:
+
+instant call
+
+⸻
+
+🤖 BOT:
+
+Here’s the JSON I will send to the API for your booking:
+
+{
+  "email": "aaa@aaa.com",
+  "insurance": "saftywings",
+  "other_insurance": null,
+  "insurance_plan": "n/a",
+  "insurance_member_id": null,
+  "supplemental_insurance": "No",
+  "use_insurance_for_visit": "Yes",
+  "zip": "94123",
+  "address": "1600 Fairview",
+  "apt_ste": null,
+  "patient_injury": "Car accident, broken leg",
+  "patient_injury_other_details": null,
+  "phone": "(415) 791-3394",
+  "phone_number_type": "mobile",
+  "currently_receiving_home_health_services": "No",
+  "home_health_discharge_date": null,
+  "firstname": "Andres",
+  "lastname": "Andrade",
+  "date_of_birth": "12-12-1991"
+}
+
+Proceeding to request your instant call and complete your registration!
+You’re all set! Thanks for completing the registration.
+
+If you have any other questions or need further assistance, I’m here to help.
+
