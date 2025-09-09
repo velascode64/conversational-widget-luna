@@ -103,7 +103,7 @@ SOP - Sequential API Flow:
    - If yes: 
      a) Display the available insurance providers from the `data.insurances` array received in STEP 1 (show the `hs_label` field from each insurance object for the user to choose). 
      
-     b) After insurance selection, show plan type options based on the selected insurance in `insurance.plans` and populate with this 'insurance_plan'
+     b) After insurance selection, show plan type options based on the selected insurance in `insurance.plans` and also add the option "Not Sure" to the list and populate with this 'insurance_plan'
     
    
    - If no: inform about cost per session and ask if they want an instant or scheduled call.
