@@ -10,7 +10,6 @@ import {
   ChatWidgetObj,
   MessageType,
 } from "@/lib/api/chats";
-import { base64ToImageSrc } from "@/lib/images";
 
 import {
   ChatWidget,
@@ -52,15 +51,20 @@ function ChatWidgetFramge({
 
   const [isOpened, setIsOpened] = useState(false);
 
-  const logoSrc = base64ToImageSrc(
-    widgetConfig.logo?.content_type,
-    widgetConfig.logo?.data_base64
-  );
+  // Usar imagen de placeholder morada
+  const logoSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="45" fill="%23974ebc"/%3E%3Cpath d="M30 50a20 20 0 0140 0" fill="white" opacity="0.3"/%3E%3C/svg%3E';
+
+  const defaultWelcomeMessage: ChatWelcomeMessageObj = {
+    id: "welcome-default",
+    message: "👋 Hey there, welcome to Luna! Let me know if you need help booking a physical therapist or have any questions—I'm here to help!\n\n- 📅 I'd like to book a physical therapy appointment.\n- 💳 Can you help me understand my bill?\n- 🔁 I need to reschedule or cancel my session.\n- ❓ I have a general question about your services.",
+    chat_id: chatId,
+    organization_id: 0,
+  };
 
   const conversation = useConversation({
     apiKey,
     chatId,
-    welcomeMessage,
+    welcomeMessage: welcomeMessage || defaultWelcomeMessage,
   });
 
   const sendWidgetEvent = useSendWidgetEvent();

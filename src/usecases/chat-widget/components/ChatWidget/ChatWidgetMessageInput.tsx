@@ -98,7 +98,7 @@ function ChatWidgetMessageInput(
           ref={mergedTextareRef}
           tabIndex={0}
           placeholder="Message..."
-          className="w-full resize-none bg-transparent p-3 text-base focus-within:outline-none"
+          className="w-full resize-none bg-transparent p-3 text-base text-black placeholder-gray-500 focus-within:outline-none"
           spellCheck={false}
           autoComplete="off"
           autoCorrect="off"

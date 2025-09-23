@@ -15,12 +15,13 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Deshabilitado dark mode para el widget
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #020817;
     --foreground: #ededed;
   }
-}
+} */
 
 body {
   background: var(--background);

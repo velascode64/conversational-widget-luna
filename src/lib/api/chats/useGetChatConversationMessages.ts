@@ -15,19 +15,9 @@ async function getChatConversationMessages({
   chatId,
   conversationId,
 }: GetChatConversationMessagesParams) {
-  const response = await chatWidgetApi(
-    `/chats/${chatId}/conversations/${conversationId}/messages`,
-    {
-      method: "GET",
-      headers: {
-        "x-api-key": apiKey!,
-      },
-    }
-  );
-
-  const data: MessageObj[] = await response.json();
-
-  return data;
+  // Por ahora devolvemos un array vac\u00edo
+  // Los mensajes se manejan en el estado local con N8N
+  return [] as MessageObj[];
 }
 
 interface UseGetChatConversationMessagesParams {

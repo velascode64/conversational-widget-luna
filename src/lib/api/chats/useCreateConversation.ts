@@ -13,16 +13,21 @@ async function createConversation({
   apiKey,
   chatId,
 }: CreateConversationParams) {
-  const response = await chatWidgetApi(`/chats/${chatId}/conversations`, {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey!,
-    },
-  });
+  // Generamos un ID de conversaci\u00f3n para N8N
+  // N8N usa el sessionId para mantener el contexto
+  // Generamos un ID solo en el cliente para evitar hydration mismatch
+  const conversationId = typeof window !== 'undefined'
+    ? `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    : 'session_temp_id';
 
-  const data: ChatConversatioinObj = await response.json();
+  const now = new Date().toISOString();
 
-  return data;
+  return {
+    id: conversationId,
+    chat_id: chatId || 'default',
+    created_at: now,
+    updated_at: now,
+  } as ChatConversatioinObj;
 }
 
 export function useCreateConversation() {

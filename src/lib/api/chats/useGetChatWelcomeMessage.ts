@@ -10,24 +10,14 @@ interface GetChatParams {
 }
 
 export async function getChatWelcomeMessage({ chatId, apiKey }: GetChatParams) {
-  try {
-    const response = await chatWidgetApi(`/chats/${chatId}/welcome_message`, {
-      method: 'GET',
-      headers: {
-        'x-api-key': apiKey!,
-      },
-    });
-
-    const data: ChatWelcomeMessageObj = await response.json();
-
-    if (response.status !== 200 || !data) {
-      throw Error('Failed to load chat welcome message');
-    }
-
-    return data;
-  } catch {
-    return null;
-  }
+  // Por ahora devolvemos un mensaje de bienvenida por defecto
+  // N8N maneja los mensajes a través del webhook
+  return {
+    id: 'welcome',
+    message: '👋 Hey there, welcome to Luna! Let me know if you need help booking a physical therapist or have any questions—I\'m here to help!\n\n- 📅 I\'d like to book a physical therapy appointment.\n- 💳 Can you help me understand my bill?\n- 🔁 I need to reschedule or cancel my session.\n- ❓ I have a general question about your services.',
+    chat_id: chatId || 'default',
+    organization_id: 1
+  } as ChatWelcomeMessageObj;
 }
 
 interface UseGetChatWelcomeMessageParams {
