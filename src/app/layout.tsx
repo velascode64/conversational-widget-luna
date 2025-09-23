@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import localFont from "next/font/local";
 
 import { cn } from "@/lib/cn";

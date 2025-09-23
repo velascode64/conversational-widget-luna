@@ -5,24 +5,26 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 interface ChatWidgetControlPageProps {
-  searchParams: {
+  searchParams: Promise<{
     widget_id: string;
     api_key: string;
     chat_id: string;
-  };
+  }>;
 }
 
 async function ChatWidgetControlPage({
   searchParams,
 }: ChatWidgetControlPageProps) {
+  const params = await searchParams;
+
   const widgetConfig = await getChatWidgetConfig({
-    chatId: searchParams.chat_id,
-    apiKey: searchParams.api_key,
+    chatId: params.chat_id,
+    apiKey: params.api_key,
   });
 
   return (
     <ChatWidgetControlFrame
-      widgetId={searchParams.widget_id}
+      widgetId={params.widget_id}
       widgetConfig={widgetConfig}
     />
   );

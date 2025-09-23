@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 
 const DEFAULT_COMPONENTS: Partial<Components> = {
   // Make all links open in a new tab
-  a: ({ node: _, children, ...props }) => {
+  a: ({ children, ...props }) => {
     return (
       <a {...props} target="_blank" rel="noopener noreferrer">
         {children}
@@ -12,7 +12,7 @@ const DEFAULT_COMPONENTS: Partial<Components> = {
     );
   },
 
-  table: ({ node: _, children, ...props }) => {
+  table: ({ children, ...props }) => {
     return (
       <div className="overflow-x-auto">
         <table className="w-full overflow-x-auto text-xs" {...props}>
