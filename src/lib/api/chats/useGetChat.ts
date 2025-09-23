@@ -10,16 +10,15 @@ interface GetChatParams {
 }
 
 export async function getChat({ chatId, apiKey }: GetChatParams) {
-  const response = await chatWidgetApi(`/chats/${chatId}`, {
-    method: "GET",
-    headers: {
-      "x-api-key": apiKey!,
-    },
-  });
-
-  const data: ChatObj = await response.json();
-
-  return data;
+  // Por ahora devolvemos datos mock ya que N8N maneja todo
+  // El apiKey se mantiene para uso futuro
+  return {
+    id: chatId || 'default',
+    name: 'Luna Assistant',
+    organization_id: 'neowork',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  } as ChatObj;
 }
 
 interface UseGetChatParams {

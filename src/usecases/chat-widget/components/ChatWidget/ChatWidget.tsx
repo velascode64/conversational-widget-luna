@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef } from "react";
+import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 
 import { ChatWidgetContext, ChatWidgetContextState } from "./ChatWidgetContext";
 import {
@@ -21,7 +22,7 @@ function ChatWidget({
   secondaryColor = DEFAULT_SECONDARY_COLOR,
   watchAreaOffset = 100,
 }: ChatWidgetProps) {
-  const messagesScrollRef = useRef<HTMLDivElement>(null);
+  const messagesScrollRef = useRef<React.ComponentRef<typeof ScrollAreaPrimitive.Root>>(null);
 
   const context = useMemo<ChatWidgetContextState>(
     () => ({

@@ -2,10 +2,10 @@ import { nanoid } from "nanoid";
 import { useEffect, useRef, useState } from "react";
 
 import {
-  useCompletionStream,
   useCreateConversation,
   useGetChatConversationMessages,
 } from "@/lib/api/chats";
+import { useCompletionStreamN8n } from "@/lib/api/chats/useCompletionStreamN8n";
 import { ChatWelcomeMessageObj, MessageType } from "@/lib/api/chats";
 import { MessageStateDTO } from "@/lib/types/chat";
 
@@ -34,22 +34,30 @@ export function useConversation({
     },
   });
 
-  // Handle messages reset
+  // Handle messages reset - SIEMPRE mostrar mensaje de bienvenida si existe
   useEffect(() => {
-    // TODO: implement hotfix to remove welcome message without text on the server
-    if (!conversationId && !!welcomeMessage?.message.trim()) {
+    console.log('=== useConversation Debug ===');
+    console.log('conversationId:', conversationId);
+    console.log('welcomeMessage:', welcomeMessage);
+    console.log('welcomeMessage?.message:', welcomeMessage?.message);
+
+    if (!conversationId && welcomeMessage?.message) {
+      console.log('Setting welcome message!');
       setMessages([
         {
-          id: welcomeMessage.id,
+          id: welcomeMessage.id || 'welcome',
           content: welcomeMessage.message,
           type: MessageType.AI,
         },
       ]);
-
       isNewConversationRef.current = false;
     } else if (!conversationId) {
+      console.log('No welcome message, setting empty array');
+      // Si no hay welcomeMessage pero tampoco conversationId, array vacío
       setMessages([]);
       isNewConversationRef.current = false;
+    } else {
+      console.log('Has conversationId, skipping welcome message');
     }
   }, [conversationId, welcomeMessage]);
 
@@ -74,7 +82,7 @@ export function useConversation({
   }, [conversationId, conversationMessages.data]);
 
   const createConversation = useCreateConversation();
-  const completionStream = useCompletionStream();
+  const completionStream = useCompletionStreamN8n();
 
   const sendMessage = async (content: string) => {
     let convId = conversationId;
@@ -110,8 +118,6 @@ export function useConversation({
 
     // Submit the user message to get streaming response
     const response = await completionStream.mutateAsync({
-      apiKey,
-      chatId,
       conversationId: convId,
       content,
     });

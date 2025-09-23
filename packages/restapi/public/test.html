@@ -106,7 +106,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🤖 DoubleoO Chat Widget Test</h1>
+        <h1>🤖 Luna Chat Widget Test (n8n)</h1>
         
         <div class="info-box">
             <h3><span class="status-indicator"></span>Widget Status</h3>
@@ -117,9 +117,10 @@
         <div class="content-section">
             <h3>📋 Current Configuration</h3>
             <div class="code-block">
-                API URL: https://agents.doubleo.ai/chat-widget.js<br>
-                API Key: __gmDLVH.vpSVc-qrfW6YgDo9MJR261ujJGvElB05zxWe69YAQxw<br>
-                Chat ID: a0539d10-8465-4ac6-8ae6-55cfedd9ba71
+                Next.js Server: http://localhost:3000<br>
+                Widget Script: http://localhost:3000/chat-widget.js<br>
+                N8N WEBHOOK: https://neowork.app.n8n.cloud/webhook/4c44d7e1-cae5-4b26-853b-ae109d20a67d<br>
+                Session ID: Will be generated automatically
             </div>
         </div>
         
@@ -145,15 +146,14 @@
         </div>
         
         <div class="content-section">
-            <h3>🔍 Mock API Server</h3>
-            <p>This page is served from a mock Express server that logs all requests.</p>
-            <p>The server provides endpoints that simulate the DoubleoO API responses:</p>
+            <h3>🔍 n8n Webhook Integration</h3>
+            <p>This widget now uses n8n webhook for chat responses.</p>
+            <p>The integration provides:</p>
             <ul>
-                <li><code>GET /api/chats/:chatId</code> - Chat configuration</li>
-                <li><code>GET /api/chats/:chatId/widget</code> - Widget settings</li>
-                <li><code>GET /api/chats/:chatId/welcome_message</code> - Welcome message</li>
-                <li><code>POST /api/chats/:chatId/conversations</code> - Create conversation</li>
-                <li><code>POST /api/chats/:chatId/conversations/:id/completion_stream</code> - Chat completion</li>
+                <li><code>POST</code> to n8n webhook with message and sessionId</li>
+                <li>Automatic session management per conversation</li>
+                <li>Default Luna greeting message on chat open</li>
+                <li>Simulated streaming response from n8n output</li>
             </ul>
         </div>
         
@@ -184,11 +184,11 @@
         ← Widget should appear here
     </div>
     
-    <!-- Chat Widget Script -->
-    <script 
-        src="https://agents.doubleo.ai/chat-widget.js"
-        data-api-key="__gmDLVH.vpSVc-qrfW6YgDo9MJR261ujJGvElB05zxWe69YAQxw"
-        data-chat-id="a0539d10-8465-4ac6-8ae6-55cfedd9ba71"
+    <!-- Chat Widget Script (Local Development) -->
+    <script
+        src="http://localhost:3000/chat-widget.js"
+        data-api-key="test-api-key"
+        data-chat-id="test-chat-id"
         crossorigin="anonymous"
     ></script>
 </body>

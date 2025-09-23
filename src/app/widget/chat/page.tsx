@@ -9,34 +9,36 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 interface WidgetChatPageProps {
-  searchParams: {
+  searchParams: Promise<{
     widget_id: string;
     api_key: string;
     chat_id: string;
-  };
+  }>;
 }
 
 async function ChatWidgetPage({ searchParams }: WidgetChatPageProps) {
+  const params = await searchParams;
+
   const [chat, widgetConfig, welcomeMessage] = await Promise.all([
     getChat({
-      chatId: searchParams.chat_id,
-      apiKey: searchParams.api_key,
+      chatId: params.chat_id,
+      apiKey: params.api_key,
     }),
     getChatWidgetConfig({
-      chatId: searchParams.chat_id,
-      apiKey: searchParams.api_key,
+      chatId: params.chat_id,
+      apiKey: params.api_key,
     }),
     getChatWelcomeMessage({
-      chatId: searchParams.chat_id,
-      apiKey: searchParams.api_key,
+      chatId: params.chat_id,
+      apiKey: params.api_key,
     }),
   ]);
 
   return (
     <ChatWidgetFrame
-      widgetId={searchParams.widget_id}
-      apiKey={searchParams.api_key}
-      chatId={searchParams.chat_id}
+      widgetId={params.widget_id}
+      apiKey={params.api_key}
+      chatId={params.chat_id}
       chat={chat}
       widgetConfig={widgetConfig}
       welcomeMessage={welcomeMessage}

@@ -13,16 +13,19 @@ export async function getChatWidgetConfig({
   chatId,
   apiKey,
 }: GetChatWidgetConfigParams) {
-  const response = await chatWidgetApi(`/chats/${chatId}/widget`, {
-    method: "GET",
-    headers: {
-      "x-api-key": apiKey!,
-    },
-  });
-
-  const data: ChatWidgetObj = await response.json();
-
-  return data;
+  // Simplificado para N8N - devuelve configuración por defecto
+  // El apiKey se mantiene para uso futuro
+  return {
+    chat_id: chatId || 'default',
+    organization_id: 1,
+    primary_color: '#974ebc',
+    secondary_color: '#ffffff',
+    logo: {
+      data_base64: '',
+      filename: 'luna-logo.jpg',
+      content_type: 'image/jpeg'
+    }
+  } as ChatWidgetObj;
 }
 
 interface UseGetChatWidgetConfig {

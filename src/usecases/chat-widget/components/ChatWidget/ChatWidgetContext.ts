@@ -4,7 +4,7 @@ import { RefObject, createContext, useContext } from "react";
 export interface ChatWidgetContextState {
   watchAreaOffset: number;
   messagesScrollRef: RefObject<
-    React.ComponentRef<typeof ScrollAreaPrimitive.Root>
+    React.ComponentRef<typeof ScrollAreaPrimitive.Root> | null
   >;
 }
 
