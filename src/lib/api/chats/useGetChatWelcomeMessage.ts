@@ -2,14 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 
 import { ChatWelcomeMessageObj } from '@/lib/api/chats';
 
-import { chatWidgetApi } from '../api';
-
 interface GetChatParams {
   apiKey: string | null | undefined;
   chatId: string | null | undefined;
 }
 
-export async function getChatWelcomeMessage({ chatId, apiKey }: GetChatParams) {
+export async function getChatWelcomeMessage({ chatId }: GetChatParams) {
   // Por ahora devolvemos un mensaje de bienvenida por defecto
   // N8N maneja los mensajes a través del webhook
   return {

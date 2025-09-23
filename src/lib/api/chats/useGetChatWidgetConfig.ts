@@ -2,8 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 
 import { type ChatWidgetObj } from "@/lib/api/chats";
 
-import { chatWidgetApi } from "../api";
-
 export interface GetChatWidgetConfigParams {
   chatId: string | null | undefined;
   apiKey: string | null | undefined;
@@ -11,7 +9,6 @@ export interface GetChatWidgetConfigParams {
 
 export async function getChatWidgetConfig({
   chatId,
-  apiKey,
 }: GetChatWidgetConfigParams) {
   // Simplificado para N8N - devuelve configuración por defecto
   // El apiKey se mantiene para uso futuro
