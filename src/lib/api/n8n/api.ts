@@ -17,12 +17,24 @@ export async function sendMessageToN8n(
   message: string,
   sessionId: string
 ): Promise<N8nChatResponse> {
-  const response = await fetch(N8N_WEBHOOK_URL, {
+  // Usar proxy interno en producción para evitar ERR_BLOCKED_BY_CLIENT
+  const isProduction = typeof window !== 'undefined' && window.location.origin.includes('vercel');
+  const apiUrl = isProduction ? '/api/n8n-proxy' : N8N_WEBHOOK_URL;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  // Solo agregar auth si no usamos proxy
+  if (!isProduction) {
+    headers['Authorization'] = N8N_AUTH_HEADER;
+  }
+
+  console.log('Sending to:', apiUrl, 'isProduction:', isProduction);
+
+  const response = await fetch(apiUrl, {
     method: 'POST',
-    headers: {
-      'Authorization': N8N_AUTH_HEADER,
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({
       message,
       sessionId,
@@ -30,10 +42,13 @@ export async function sendMessageToN8n(
   });
 
   if (!response.ok) {
-    throw new Error(`N8n webhook error: ${response.status}`);
+    const errorText = await response.text();
+    console.error('N8N API Error:', response.status, errorText);
+    throw new Error(`N8n webhook error: ${response.status} - ${errorText}`);
   }
 
   const data = await response.json();
+  console.log('N8N Response:', data);
 
   if (Array.isArray(data) && data.length > 0) {
     return { output: data[0].output };
