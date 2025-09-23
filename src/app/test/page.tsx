@@ -5,14 +5,14 @@ import { useEffect } from "react";
 export default function TestPage() {
   useEffect(() => {
     const script = document.createElement("script");
-    script.src = "http://localhost:3000/chat-widget.js";
+    script.src = "/api/embed";
     script.dataset.apiKey = "test-api-key";
     script.dataset.chatId = "test-chat-id";
     script.async = true;
     document.body.appendChild(script);
 
     return () => {
-      const existingScript = document.querySelector('script[src="http://localhost:3000/chat-widget.js"]');
+      const existingScript = document.querySelector('script[src="/api/embed"]');
       if (existingScript) {
         existingScript.remove();
       }
@@ -36,7 +36,7 @@ export default function TestPage() {
           <ul className="space-y-2 text-sm">
             <li><strong>API Key:</strong> test-api-key</li>
             <li><strong>Chat ID:</strong> test-chat-id</li>
-            <li><strong>Widget URL:</strong> http://localhost:3000/chat-widget.js</li>
+            <li><strong>Widget URL:</strong> /api/embed</li>
             <li><strong>API URL:</strong> {process.env.NEXT_PUBLIC_API_URL || "Not configured"}</li>
           </ul>
         </div>
