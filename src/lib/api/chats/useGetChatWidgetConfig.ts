@@ -16,7 +16,7 @@ export async function getChatWidgetConfig({
     chat_id: chatId || 'default',
     organization_id: 1,
     primary_color: '#974ebc',
-    secondary_color: '#ffffff',
+    secondary_color: '#f4f6f8',
     logo: {
       data_base64: '',
       filename: 'luna-logo.jpg',

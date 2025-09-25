@@ -1,0 +1,19 @@
+/* Estilos específicos para el widget dentro del iframe */
+/* Estos estilos solo se aplican a las páginas del widget, no afectan el sitio host */
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Asegurar que el contenedor root de Next.js también ocupe 100% altura */
+#__next {
+  height: 100%;
+}
+
+/* Asegurar que el contenedor del layout también ocupe 100% */
+body > div {
+  height: 100%;
+}
