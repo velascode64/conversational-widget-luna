@@ -51,8 +51,8 @@ function ChatWidgetFramge({
 
   const [isOpened, setIsOpened] = useState(false);
 
-  // Usar imagen de placeholder morada
-  const logoSrc = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="45" fill="%23974ebc"/%3E%3Cpath d="M30 50a20 20 0 0740 0" fill="white" opacity="0.3"/%3E%3C/svg%3E';
+  // Usar logo de Luna
+  const logoSrc = '/luna-logo.png';
 
   const conversation = useConversation({
     apiKey,
