@@ -12,7 +12,7 @@ import {
 } from "../../lib/constants";
 
 const iconVariants = cva(
-  "w-full h-full flex items-center justify-center transition-all duration-200",
+  "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-200",
   {
     variants: {
       opened: {
@@ -27,7 +27,7 @@ const iconVariants = cva(
 );
 
 const messageIconVariants = cva(
-  "absolute transition-all duration-200 w-full h-full flex items-center justify-center",
+  "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-200 flex items-center justify-center",
   {
     variants: {
       opened: {
@@ -56,30 +56,32 @@ function ChatWidgetControl({
   type = "button",
   ...props
 }: ChatWidgetControlProps) {
-  const computedStyle = useMemo(() => {
-    return {
-      "--chat-widget-primary": primaryColor,
-      "--chat-widget-secondary": secondaryColor,
-    } as React.CSSProperties;
-  }, [primaryColor, secondaryColor]);
+  const computedStyle = useMemo(() => ({
+    "width": "100%", "height": "100%",
+    "--chat-widget-primary": primaryColor,
+    "--chat-widget-secondary": secondaryColor,
+  }) as React.CSSProperties, [primaryColor, secondaryColor]);
 
   return (
     <button
       style={computedStyle}
       type={type}
       className={cn(
-        "flex h-full w-full items-center justify-center whitespace-nowrap rounded-full bg-[var(--chat-widget-primary)] text-sm font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+        "relative h-12 w-12 aspect-square p-0 overflow-hidden rounded-full",
+        "bg-[var(--chat-widget-primary)] text-white",
+        "flex items-center justify-center transition-opacity hover:opacity-90",
+        "focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
         className
       )}
       {...props}
     >
       <div className="relative h-full w-full">
-        <div className={messageIconVariants({ opened })}>
-          <MessageCircleIcon className="h-3/6 w-3/6" />
+        {/* Wrappers no capturan clics */}
+        <div className={cn(messageIconVariants({ opened }), "pointer-events-none")}>
+          <MessageCircleIcon className="h-6 w-6" />
         </div>
-
-        <div className={iconVariants({ opened })}>
-          <ChevronDownIcon className="h-3/6 w-3/6" />
+        <div className={cn(iconVariants({ opened }), "pointer-events-none")}>
+          <ChevronDownIcon className="h-6 w-6" />
         </div>
       </div>
     </button>
