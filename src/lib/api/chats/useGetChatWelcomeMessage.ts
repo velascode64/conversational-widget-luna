@@ -12,7 +12,7 @@ export async function getChatWelcomeMessage({ chatId }: GetChatParams) {
   // N8N maneja los mensajes a través del webhook
   return {
     id: 'welcome',
-    message: '👋 Hey there, welcome to Luna! Let me know if you need help booking a physical therapist or have any questions—I\'m here to help!\n\n- 📅 I\'d like to book a physical therapy appointment.\n- 💳 Can you help me understand my bill?\n- 🔁 I need to reschedule or cancel my session.\n- ❓ I have a general question about your services.',
+    message: '👋 Welcome to Luna!\n\nHow can I help you today? Whether you\'d like to schedule an in-home PT session, see if we serve your ZIP code, or ask anything else, just let me know. Popular things people ask about include:\n\n• Scheduling a visit\n\n• Checking service areas\n\n• Insurance, treatments, or any other questions\n\nFeel free to start with one of those—or anything on your mind. I\'m here for you!',
     chat_id: chatId || 'default',
     organization_id: 1
   } as ChatWelcomeMessageObj;

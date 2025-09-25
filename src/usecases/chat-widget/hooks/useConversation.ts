@@ -8,6 +8,7 @@ import {
 import { useCompletionStreamN8n } from "@/lib/api/chats/useCompletionStreamN8n";
 import { ChatWelcomeMessageObj, MessageType } from "@/lib/api/chats";
 import { MessageStateDTO } from "@/lib/types/chat";
+import { getWelcomeMessageFromN8n } from "@/lib/api/n8n/api";
 
 import { useConversationId } from "./useConversationId";
 
@@ -34,15 +35,14 @@ export function useConversation({
     },
   });
 
-  // Handle messages reset - SIEMPRE mostrar mensaje de bienvenida si existe
+  // Handle messages reset - Mostrar welcomeMessage si existe
   useEffect(() => {
     console.log('=== useConversation Debug ===');
     console.log('conversationId:', conversationId);
     console.log('welcomeMessage:', welcomeMessage);
-    console.log('welcomeMessage?.message:', welcomeMessage?.message);
 
-    if (!conversationId && welcomeMessage?.message) {
-      console.log('Setting welcome message!');
+    if (welcomeMessage?.message) {
+      console.log('Setting welcome message');
       setMessages([
         {
           id: welcomeMessage.id || 'welcome',
@@ -50,14 +50,12 @@ export function useConversation({
           type: MessageType.AI,
         },
       ]);
-      isNewConversationRef.current = false;
-    } else if (!conversationId) {
-      console.log('No welcome message, setting empty array');
-      // Si no hay welcomeMessage pero tampoco conversationId, array vacío
+      return;
+    }
+
+    if (!conversationId) {
+      console.log('No welcomeMessage, no conversationId - setting empty');
       setMessages([]);
-      isNewConversationRef.current = false;
-    } else {
-      console.log('Has conversationId, skipping welcome message');
     }
   }, [conversationId, welcomeMessage]);
 
@@ -66,7 +64,8 @@ export function useConversation({
     if (
       conversationId &&
       conversationMessages.data &&
-      !isNewConversationRef.current
+      !isNewConversationRef.current &&
+      !welcomeMessage?.message  // NO sobrescribir si hay welcomeMessage
     ) {
       const displayMessageTypes = [MessageType.AI, MessageType.HUMAN];
 
@@ -79,10 +78,11 @@ export function useConversation({
         });
       });
     }
-  }, [conversationId, conversationMessages.data]);
+  }, [conversationId, conversationMessages.data, welcomeMessage]);
 
   const createConversation = useCreateConversation();
   const completionStream = useCompletionStreamN8n();
+
 
   const sendMessage = async (content: string) => {
     let convId = conversationId;

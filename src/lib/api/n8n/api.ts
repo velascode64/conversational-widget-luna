@@ -70,3 +70,22 @@ export async function streamMessageToN8n(
     await new Promise(resolve => setTimeout(resolve, 50));
   }
 }
+
+/**
+ * Obtiene el mensaje de bienvenida del bot N8N sin crear una conversación persistente
+ * Esta función se usa solo para obtener el saludo inicial
+ */
+export async function getWelcomeMessageFromN8n(): Promise<string> {
+  try {
+    // Usar un sessionId temporal solo para obtener la bienvenida
+    const tempSessionId = `welcome-${Date.now()}`;
+
+    const response = await sendMessageToN8n("Welcome message", tempSessionId);
+
+    return response.output || "👋 Hello! How can I help you today?";
+  } catch (error) {
+    console.error('Error getting welcome message from N8n:', error);
+    // Fallback en caso de error
+    return "👋 Hello! How can I help you today?";
+  }
+}
