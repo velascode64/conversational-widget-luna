@@ -1,11 +1,67 @@
 /* Estilos específicos para el widget dentro del iframe */
 /* Estos estilos solo se aplican a las páginas del widget, no afectan el sitio host */
 
+@font-face {
+  font-family: '__monaSansFont_Fallback';
+  src: local('Arial');
+  ascent-override: 90%;
+  descent-override: 22.5%;
+  line-gap-override: 0%;
+  size-adjust: 107.4%;
+}
+
+@font-face {
+  font-family: '__monaSansFont';
+  src: url('../../fonts/MonaSans-Light.woff2') format('woff2');
+  font-weight: 200 350;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: '__monaSansFont';
+  src: url('../../fonts/MonaSans-Regular.woff2') format('woff2');
+  font-weight: 400 450;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: '__monaSansFont';
+  src: url('../../fonts/MonaSans-Medium.woff2') format('woff2');
+  font-weight: 500 550;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: '__monaSansFont';
+  src: url('../../fonts/MonaSans-SemiBold.woff2') format('woff2');
+  font-weight: 600 750;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: '__monaSansFont';
+  src: url('../../fonts/MonaSans-Bold.woff2') format('woff2');
+  font-weight: 800 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --mona-sans: '__monaSansFont', '__monaSansFont_Fallback';
+}
+
 html,
 body {
   height: 100%;
   margin: 0;
   padding: 0;
+  font-family: var(--mona-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: normal;
+  font-variation-settings: normal;
 }
 
 /* Asegurar que el contenedor root de Next.js también ocupe 100% altura */
