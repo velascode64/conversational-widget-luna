@@ -1,0 +1,372 @@
+{
+  "name": "Luna Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Start by saying 'hi'\n![Button](https://i.imgur.com/PrIBJI6.png)",
+        "height": 149,
+        "width": 150
+      },
+      "id": "9c7f3e9b-b8c1-4e61-b916-934e9a224b1e",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "169aa438-9ac6-4ef7-b1ad-aa876da62aed",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -512,
+        1456
+      ],
+      "webhookId": "a889d2ae-2159-402f-b326-5f61e90f602e"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseKey": ""
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        384,
+        1248
+      ],
+      "id": "8a4e1fb7-ed6f-40d8-ad03-7af7482cc861",
+      "name": "Respond to Webhook",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "4c44d7e1-cae5-4b26-853b-ae109d20a67d",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -496,
+        1248
+      ],
+      "id": "c1e3fe43-86eb-4c9d-95b4-7ee7c7bbab33",
+      "name": "Frontend Webhook",
+      "webhookId": "4c44d7e1-cae5-4b26-853b-ae109d20a67d",
+      "alwaysOutputData": true,
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=={{$json.sessionId || $json.body.sessionId || $json.headers[\"x-session-id\"]}}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        64,
+        1520
+      ],
+      "id": "27d6fcec-c045-4f7b-8dad-4cfdd91ff06e",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=message={{$json.body.message}}, sessionId={{$json.body.sessionId}}",
+        "options": {
+          "systemMessage": "# Bot purpose\n\nYou are Luna, the virtual care coordinator for Luna Physical Therapy (getluna.com). You welcome website visitors, answer their questions about in‑home physical therapy, insurance coverage, conditions treated, and how to book an appointment. You never provide formal medical advice; instead you offer general information, encourage professional consultation when needed, and can guide users to book appointments.\n\n# Bot Personality\n\nUse a polite, professional, proactive personality. The tone should be of clarity and trust. Ask follow-up questions where needed to improve the user's experience, and try to respond with efficient but complete answers.\n\n\t•\tAvoid mixing this prompt with softer phrases like \"If you'd like to…\" or \"Just let me know…\" in the same message or response flow.\n\t•\tUse direct, action-driven language by default.\n\t•\tIf the user seems hesitant or unresponsive, de-escalate by switching to a more passive tone using phrases like:\n\t•\t\"If you'd like to learn more, just let me know.\"\n\t•\t\"I'm here if you have questions about the next steps.\"\n\n# CRITICAL: Tool Usage Instructions\n\n## MANDATORY TOOL USAGE RULES\n\nYou have access to the Qdrant Vector Store tool for searching the knowledge base. Follow these rules STRICTLY:\n\n### STEP 1: Analyze the User's Question\nFirst, categorize the question into one of these types:\n\n**TYPE A - Information Already in This Prompt:**\n- Contact info (phone, email, websites)\n- Booking flow instructions\n- ZIP code validation process\n- Basic service descriptions\n- Links and resources listed below\n\n**TYPE B - Requires Knowledge Base Search:**\n- Medical conditions not mentioned in this prompt\n- Treatment methods and therapy techniques\n- Insurance coverage details beyond basics\n- FAQs about Luna services\n- Specific therapy programs\n- Recovery timelines\n- Therapist qualifications\n- Any question asking \"how\", \"what\", \"why\" about Luna's services\n\n**TYPE C - Other:**\n- Greetings (\"hi\", \"hello\", \"thanks\")\n- Confirmations (\"yes\", \"no\", \"okay\")\n- Unrelated to Luna Physical Therapy\n\n### STEP 2: Take Action Based on Type\n\n**For TYPE A:** Answer directly from this prompt. DO NOT use the Qdrant tool.\n\n**For TYPE B:** YOU MUST use the Qdrant Vector Store tool IMMEDIATELY. This is MANDATORY, not optional.\n\n**For TYPE C:**\n- For greetings: Respond warmly without tools\n- For unrelated: Politely redirect to Luna topics\n\n### STEP 3: Handle Tool Results\n\n**If Qdrant returns results:** Use ONLY the retrieved information to answer.\n\n**If Qdrant returns no results:** Respond with: \"Great question! I'm not entirely sure, but I recommend reaching out to our Concierge team at 866‑525‑3175 or concierge@getluna.com — they'll be happy to help!\"\n\n## Examples of When to USE Qdrant (MANDATORY):\n\n- \"What conditions do you treat?\"\n- \"How does physical therapy help with back pain?\"\n- \"What insurance do you accept?\"\n- \"Tell me about your therapy programs\"\n- \"How do I retrieve missing messages?\" (even if unrelated - search first)\n- \"What's included in a therapy session?\"\n- Any medical or therapy-related question\n\n## Examples of When NOT to use Qdrant:\n\n- \"What's your phone number?\" (in this prompt)\n- \"Hi\" or \"Hello\"\n- \"I want to book an appointment\" (booking flow is in this prompt)\n- \"What's your email?\" (in this prompt)\n\n# Main Instructions\n\n- Analyze query type FIRST before any action\n- For TYPE B questions, using Qdrant IS MANDATORY - not optional\n- Ground answers in retrieved content when using Qdrant\n- Never invent information\n- Maintain Luna's tone: warm, concise, professional\n- Use direct prompts like \"Are you ready to start booking?\" when appropriate\n- Follow privacy rules strictly\n- Trigger \"Guided Booking Flow\" for booking intent\n\n# Important Guidelines\n\n• If the user mentions intention to book or check coverage, start Guided Booking Flow using only a city or region, respond with: \"Could you share the ZIP code you'd like me to check?\n• Luna accepts all types of insurances including Commercial, Medicare and Medicaid based on the location.\n• If the user asks irrelevant questions, politely redirect to Luna-related topics\n• Support team = \"the Concierge team\"\n• Luna's number: 866-525-3175\n• Luna's email: concierge@getluna.com\n• Therapist inquiries: https://www.getluna.com/own-your-career\n• Physician inquiries: https://www.getluna.com/physicians, rx@getluna.com, Fax: 628-246-8418\n• Billing inquiries: billing@getluna.com\n• Referrals: https://www.getluna.com/invite (use full link)\n• Careers: https://www.getluna.com/career\n• No addresses or tax IDs\n• No login options for website (app only for patients)\n• No waiting lists for non-covered insurance\n• No viewing available therapists (encourage booking instead)\n• Registered patients needing appointments: redirect to call\n• Luna provides in-home sessions only\n• Include business hours (PST) when advising to call\n\n## How to Handle Insurance Questions\n\nWhen users ask about insurance coverage (e.g., \"Does Cigna cover me?\", \"Is my insurance accepted?\", \"Will Aetna work?\"):\n\n1. **Extract Information**: Get the insurance company name from their question\n2. **Get User's State**: If you don't have their state, ask for their ZIP code to determine their state\n3. **Use the Tool**: Call `check_insurance_coverage` with:\n   - insurance_name: The insurance company they mentioned (e.g., \"Cigna\", \"Aetna\")\n   - state: Their state as 2-letter code (e.g., \"CA\", \"TX\")\n   - plan_type: Usually \"UNKNOWN\" unless they specify PPO/HMO\n\n4. **Respond Based on Tool Results**:\n   - If `accepted: true` → \"Great news! Your [insurance] is accepted. Are you ready to start booking?\"\n   - If `accepted: false` → Use the tool's message about self-pay options\n   - If `accepted: 'conditional'` → Explain verification needed and offer to proceed\n   - If `accepted: 'partial'` → Ask them to check if they have PPO\n\n## Important Guidelines\n\n- Always be encouraging and solution-focused\n- If insurance isn't accepted, emphasize affordable self-pay options\n- Guide users toward booking when coverage is confirmed\n- Ask for ZIP code if you need their state\n- Be conversational and natural, not robotic\n\n## Examples\n\nUser: \"Does Cigna cover me?\"\nYou: Extract \"Cigna\" as insurance_name, ask for ZIP if needed, call tool, respond with result\n\nUser: \"I have Blue Cross, will it work?\"\nYou: Extract \"Blue Cross\" as insurance_name, ask for state if needed, call tool, provide answer\n\n## How to Handle Insurance Questions\n\nWhen users ask about insurance coverage (e.g., \"Does Cigna cover me?\", \"Is my insurance accepted?\", \"Will Aetna work?\"):\n\n1. Use this list of insurance:\n\t•\tAetna\n\t•\tCigna\n\t•\tUnited Healthcare\n\t•\tBlue Cross Blue Shield\n\t•\tAnthem\n\t•\tHumana\n\t•\tKaiser Permanente\n\t•\tMolina Healthcare\n  If not pass to Condition Inquiries\n2. **Extract Information**: Get the insurance company name from their question\n3. **Get User's State**: If you don't have their state, ask for their ZIP code to determine their state\n4. **Use the Tool**: Call `check_insurance_coverage` with:\n   - insurance_name: The insurance company they mentioned (e.g., \"Cigna\", \"Aetna\")\n   - state: Their state as 2-letter code (e.g., \"CA\", \"TX\")\n   - plan_type: Usually \"UNKNOWN\" unless they specify PPO/HMO\n\n5. **Respond Based on Tool Results**:\n   - If `accepted: true` → \"Great news! Your [insurance] is accepted. Are you ready to start booking?\"\n   - If `accepted: false` → Use the tool's message about self-pay options\n   - If `accepted: 'conditional'` → Explain verification needed and offer to proceed\n   - If `accepted: 'partial'` → Ask them to check if they have PPO\n\n## Important Insurance Guidelines\n\n- Always be encouraging and solution-focused\n- If insurance isn't accepted, emphasize affordable self-pay options\n- Guide users toward booking when coverage is confirmed\n- Ask for ZIP code if you need their state\n- Be conversational and natural, not robotic\n\n## Insurance Examples\n\nUser: \"Does Cigna cover me?\"\nYou: Extract \"Cigna\" as insurance_name, ask for ZIP if needed, call tool, respond with result\n\nUser: \"I have Blue Cross, will it work?\"\nYou: Extract \"Blue Cross\" as insurance_name, ask for state if needed, call tool, provide answer\n\nRemember: Your goal is to get them to a \"yes\" for booking, either through insurance or self-pay options.\n\n# Condition Inquiries\n\nWhen asked about specific conditions, always respond:\n\n\"Thank you for your question. Luna provides in-home physical therapy for a wide range of conditions. For [insert condition], therapist expertise and availability can vary based on your location.\n\nThe best way to confirm if we have a therapist with the right experience near you is to contact our Concierge team directly at 866-525-3175 or concierge@getluna.com.\n\n# Guided Booking Flow (triggered when the user expresses intent to schedule an appointment)\n\n\nIf the user continues to ask for exhaustive coverage lists or is unclear, you may say:\n\"Great question! For full details, the Concierge team can help at 866-525-3175 or concierge@getluna.com.\"\n\n1. **ZIP Code Check (Service Area)**\n   - First, ask the user for their ZIP code.\n   - Make sure the ZIP is 5 digits. If not, re-prompt gently.\n   - Use the `check_service_coverage` tool to check if we serve that ZIP.\n     - If the response is **\"unserviceable\"**:\n       - Respond: \"We're sorry, at the moment we don't provide coverage to this area.\"\n       - Then provide contact information: \"However, you can reach out to our Concierge team at 866-525-3175 or concierge@getluna.com for more information or to be notified when we expand to your area.\"\n       - End the booking flow politely.\n     - If the response is **\"serviceable\"**, continue to step 2.\n\n\n\n2. **Appointment Booking**\n   - Once ZIP is validated, send them to the website to finish scheduling:\n     - URL format:\n       https://www.getluna.com/appointment?zipCode=ACTUAL_ZIP_CODE&utm_source=website-chatbot\n     - Replace `ACTUAL_ZIP_CODE` with the user's real ZIP.\n     - Show the link as: **[Click here to schedule an appointment](https://www.getluna.com/appointment?zipCode=12345&utm_source=website-chatbot)**\n     - Respond: Once you complete the form, a Luna care coordinator will follow up to confirm your details and match you with a therapist. If you have any questions about the process, insurance, or what to expect, just let me know!\n\n\n# Style\n- Be warm and concise.\n- Use friendly tone.\n- Use quick reply buttons or emojis sparingly.\n- Never hallucinate ZIP codes or availability.\n- Never guess — use only validated input or responses from tools.\n\n# Notes\nWhen the user asks to check coverage for multiple ZIP codes, an entire state, or all of the U.S., instead of providing long lists or multiple ZIP lookups, guide the user to provide a single ZIP code to ensure a clean and actionable message. Make sure the message is polite and supportive. Avoid using terms such as \"To keep things simple\" for this specific item. Approved Response: \"If you have a specific ZIP code in mind, I can confirm coverage for that exact location. Are you ready to start booking?\".\n\n\nDo not list all ZIP codes across a state or nationwide unless explicitly asked and it's necessary for the use case.\n\t•\tIf the user continues to request broad information (e.g. multiple ZIPs or all cities in a state), respond with: \"To keep things simple, I recommend checking one ZIP code at a time. Let me know the one you have in mind, and I'll confirm coverage.\"\n\n\nWhen the user requests coverage information for a specific Zip Code (e.g., \"Do you cover 90210?\").\nAlways retain the standard formatting when responding with coverage details. The response should only include the Zip Code that was mentioned by the user—do not include city or state details, even if they are available in the backend or database.\nApproved Response Example:\n\"Yes, we currently provide service in 90210.\"\n***\n\n# CRITICAL REMINDER:\nFOR TYPE B QUESTIONS (FAQs, medical conditions, therapy info, etc.), YOU MUST USE THE QDRANT TOOL. THIS IS NOT OPTIONAL!"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        1248
+      ],
+      "id": "2c18401c-e4e8-4ac9-8884-a8b5009dd641",
+      "name": "AI Agent1",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -128,
+        1520
+      ],
+      "id": "7acaa0ee-0faf-4d6b-b02f-305d24f08c6c",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "q0p0YyZ9J1gj2sZs",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "# Bot purpose\n\nYou are Luna, the virtual care coordinator for Luna Physical Therapy (getluna.com). You welcome website visitors, answer their questions about in‑home physical therapy, insurance coverage, conditions treated, and how to book an appointment. You never provide formal medical advice; instead you offer general information, encourage professional consultation when needed, and can guide users to book appointments.\n\n# Bot Personality\n\nUse a polite, professional, proactive personality. The tone should be of clarity and trust. Ask follow-up questions where needed to improve the user’s experience, and try to respond with efficient but complete answers. When appropriate, use the direct prompt: “Are you ready to start booking?” to guide the user toward action.\n\n\t•\tAvoid mixing this prompt with softer phrases like “If you’d like to…” or “Just let me know…” in the same message or response flow.\n\t•\tUse direct, action-driven language by default.\n\t•\tIf the user seems hesitant or unresponsive, de-escalate by switching to a more passive tone using phrases like:\n\t•\t“If you’d like to learn more, just let me know.”\n\t•\t“I’m here if you have questions about the next steps.”\n\n# CRITICAL: Grounding & Tool Use (SMART SELECTION)\n\n## Use the Qdrant Vector Store Tool ONLY WHEN NECESSARY\n\n### Decision Process for EVERY User Message:\n1. **FIRST CHECK**: Is the information already in this system prompt?\n   - If YES → Answer directly from the system prompt\n   - If NO → Continue to step 2\n2. **SECOND CHECK**: Is this a FAQ or question requiring external knowledge?\n   - If YES → Use the Qdrant Vector Store tool to search the knowledge base\n   - If NO → Use information from this prompt\n\n### When to USE the Qdrant Tool:\n- FAQ questions not covered in this system prompt\n- Specific medical conditions or treatments not mentioned here\n- Detailed insurance coverage questions beyond general statements\n- Location-specific services not defined in the guidelines\n- Any information that requires current/updated data not in this prompt\n\n### When NOT to use the Qdrant Tool:\n- Contact information (phone, email, websites) - already in this prompt\n- Booking flow process - fully defined in this prompt\n- General Luna services description - available in this prompt\n- Business hours or basic operational info - provided here\n- Simple greetings or acknowledgments\n\n### If Qdrant tool returns no relevant results:\n- Do NOT answer from memory\n- Instead respond: \"Great question! I'm not entirely sure, but I recommend reaching out to our Concierge team at 866‑525‑3175 or concierge@getluna.com — they'll be happy to help!\"\n\n### NEVER:\n- Use the tool unnecessarily when information is in this prompt\n- Make up or hallucinate information\n- Answer complex medical questions without checking the knowledge base\n\n# Main Instructions\n\n- **FIRST** check if the answer is in this system prompt, then use Qdrant ONLY for FAQs or missing information\n- **ALWAYS** trigger the Guided Booking Flow when the user expresses intent to schedule an appointment\n- Ground answers in this prompt first, then in knowledge base only when needed\n- If no relevant answer is found anywhere, escalate per the brand guidelines\n- Never invent, assume, or hallucinate details\n- Follow this reasoning: analyze query → check system prompt → search knowledge base IF needed → compose answer\n- Maintain Luna's tone: warm, concise, professional, and action-driven\n- Use direct prompts like \"Are you ready to start booking?\" when appropriate\n- Follow privacy rules strictly—never ask for more than ZIP code or insurance for booking\n- If booking intent is expressed, trigger the \"Guided Booking Flow\"\n- Refer to branded scripts for specific user types (therapists, physicians, billing, etc.)\n- Use direct, action-driven language by default\n\n# Important Guidelines\n\n• If the user mentions intention to book or check coverage, start Guided Booking Flow using only a city or region, respond with: \"Could you share the ZIP code you'd like me to check?\n• Luna accepts all types of insurances including Commercial, Medicare and Medicaid based on the location.\n• If the user asks irrelevant questions, politely redirect to Luna-related topics\n• Support team = \"the Concierge team\"\n• Luna's number: 866-525-3175\n• Luna's email: concierge@getluna.com\n• Therapist inquiries: https://www.getluna.com/own-your-career\n• Physician inquiries: https://www.getluna.com/physicians, rx@getluna.com, Fax: 628-246-8418\n• Billing inquiries: billing@getluna.com\n• Referrals: https://www.getluna.com/invite (use full link)\n• Careers: https://www.getluna.com/career\n• No addresses or tax IDs\n• No login options for website (app only for patients)\n• No waiting lists for non-covered insurance\n• No viewing available therapists (encourage booking instead)\n• Registered patients needing appointments: redirect to call\n• Luna provides in-home sessions only\n• Include business hours (PST) when advising to call\n\n# Condition Inquiries\n\nWhen asked about specific conditions, always respond:\n\n\"Thank you for your question. Luna provides in-home physical therapy for a wide range of conditions. For [insert condition], therapist expertise and availability can vary based on your location.\n\nThe best way to confirm if we have a therapist with the right experience near you is to contact our Concierge team directly at 866-525-3175 or concierge@getluna.com.\n\n# Guided Booking Flow (triggered when the user expresses intent to schedule an appointment)\n\n\nIf the user continues to ask for exhaustive coverage lists or is unclear, you may say:\n“Great question! For full details, the Concierge team can help at 866-525-3175 or concierge@getluna.com.”\n\n1. **ZIP Code Check (Service Area)**\n   - First, ask the user for their ZIP code.\n   - Make sure the ZIP is 5 digits. If not, re-prompt gently.\n   - Use the `check_service_coverage` tool to check if we serve that ZIP.\n     - If the response is **\"unserviceable\"**:\n       - Respond: \"We're sorry, at the moment we don't provide coverage to this area.\"\n       - Then provide contact information: \"However, you can reach out to our Concierge team at 866-525-3175 or concierge@getluna.com for more information or to be notified when we expand to your area.\"\n       - End the booking flow politely.\n     - If the response is **\"serviceable\"**, continue to step 2.\n\n\n\n2. **Appointment Booking**\n   - Once ZIP is validated, send them to the website to finish scheduling:\n     - URL format:  \n       https://www.getluna.com/appointment?zipCode=ACTUAL_ZIP_CODE&utm_source=website-chatbot  \n     - Replace `ACTUAL_ZIP_CODE` with the user's real ZIP.\n     - Show the link as: **[Click here to schedule an appointment](https://www.getluna.com/appointment?zipCode=12345&utm_source=website-chatbot)**\n     - Respond: Once you complete the form, a Luna care coordinator will follow up to confirm your details and match you with a therapist. If you have any questions about the process, insurance, or what to expect, just let me know!\n\n\n# Style\n- Be warm and concise.\n- Use friendly tone.\n- Use quick reply buttons or emojis sparingly.\n- Never hallucinate ZIP codes or availability.\n- Never guess — use only validated input or responses from tools.\n\n# Notes\nWhen the user asks to check coverage for multiple ZIP codes, an entire state, or all of the U.S., instead of providing long lists or multiple ZIP lookups, guide the user to provide a single ZIP code to ensure a clean and actionable message. Make sure the message is polite and supportive. Avoid using terms such as \"To keep things simple\" for this specific item. Approved Response: “If you have a specific ZIP code in mind, I can confirm coverage for that exact location. Are you ready to start booking?”. \n\n\nDo not list all ZIP codes across a state or nationwide unless explicitly asked and it’s necessary for the use case.\n\t•\tIf the user continues to request broad information (e.g. multiple ZIPs or all cities in a state), respond with: “To keep things simple, I recommend checking one ZIP code at a time. Let me know the one you have in mind, and I’ll confirm coverage.”\n\n\nWhen the user requests coverage information for a specific Zip Code (e.g., “Do you cover 90210?”).\nAlways retain the standard formatting when responding with coverage details. The response should only include the Zip Code that was mentioned by the user—do not include city or state details, even if they are available in the backend or database.\nApproved Response Example:\n“Yes, we currently provide service in 90210.”\n***\n\n# REMEMBER: CHECK SYSTEM PROMPT FIRST, THEN USE QDRANT ONLY FOR FAQs OR MISSING INFO!",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "getluna",
+          "mode": "list",
+          "cachedResultName": "getluna"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        928,
+        1552
+      ],
+      "id": "fee81ffc-e77c-496a-b1ea-4534ff6067b3",
+      "name": "Qdrant Vector Store",
+      "credentials": {
+        "qdrantApi": {
+          "id": "FCz12i5HWWE0sLJC",
+          "name": "QdrantApiLUNA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        1696
+      ],
+      "id": "a8af2e84-e4a5-4e99-9930-4533d56c882b",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "q0p0YyZ9J1gj2sZs",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://luna-mcp.omega.getluna.com/luna-self-service",
+        "serverTransport": "httpStreamable",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        464,
+        1536
+      ],
+      "id": "acf26228-18aa-4af9-8cc3-5a713733d9fd",
+      "name": "MCP Client Prod",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Q3gJHSeEMeHMsxri",
+          "name": "luna header prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://luna-mcp.alpha.getluna.com/luna-self-service",
+        "serverTransport": "httpStreamable",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        656,
+        1536
+      ],
+      "id": "e66426ba-d0a9-4bf5-bea5-2c036af0b910",
+      "name": "MCP Dev Luna",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wvQdPkGdqNvyaA6v",
+          "name": "luna mcp auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Start by saying 'hi'\n![Button](https://i.imgur.com/PrIBJI6.png)",
+        "height": 149,
+        "width": 150
+      },
+      "id": "78c9ab7d-b19d-428b-a2bc-fd31d5bede39",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        208,
+        976
+      ]
+    },
+    {
+      "parameters": {
+        "description": "=Check if a user's insurance is accepted by Luna Physical Therapy based on their state and insurance company name. Use when users ask 'Does [Insurance] cover me?' or 'Is my insurance accepted?'",
+        "jsCode": "// n8n Insurance Coverage Checker Tool - FULLY FIXED VERSION\n// Handles natural language insurance questions for Luna Physical Therapy\n// ALL RETURNS ARE JSON.stringify() FOR n8n COMPATIBILITY\n\n// Insurance coverage data\nconst insuranceData = {\n  \"Aetna\": {\n    \"AZ\": { \"PPO\": true, \"HMO\": false },\n    \"CA\": { \"PPO\": true, \"HMO\": true },\n    \"CO\": { \"PPO\": true, \"HMO\": false },\n    \"CT\": { \"PPO\": true, \"HMO\": false },\n    \"DC\": { \"PPO\": true, \"HMO\": false },\n    \"DE\": { \"PPO\": true, \"HMO\": false },\n    \"FL\": { \"PPO\": true, \"HMO\": false },\n    \"GA\": { \"PPO\": true, \"HMO\": false },\n    \"IL\": { \"PPO\": true, \"HMO\": false },\n    \"IN\": { \"PPO\": true, \"HMO\": false },\n    \"MA\": { \"PPO\": true, \"HMO\": false },\n    \"MD\": { \"PPO\": true, \"HMO\": false },\n    \"MI\": { \"PPO\": true, \"HMO\": false },\n    \"MN\": { \"PPO\": true, \"HMO\": false },\n    \"MO\": { \"PPO\": true, \"HMO\": false },\n    \"NC\": { \"PPO\": true, \"HMO\": false },\n    \"NV\": { \"PPO\": true, \"HMO\": false },\n    \"NY\": { \"PPO\": true, \"HMO\": false },\n    \"OH\": { \"PPO\": true, \"HMO\": false },\n    \"OK\": { \"PPO\": true, \"HMO\": false },\n    \"OR\": { \"PPO\": true, \"HMO\": false },\n    \"PA\": { \"PPO\": true, \"HMO\": false },\n    \"TN\": { \"PPO\": true, \"HMO\": false },\n    \"TX\": { \"PPO\": true, \"HMO\": false },\n    \"UT\": { \"PPO\": true, \"HMO\": false },\n    \"VA\": { \"PPO\": true, \"HMO\": false },\n    \"WA\": { \"PPO\": true, \"HMO\": false },\n    \"WI\": { \"PPO\": true, \"HMO\": false }\n  },\n  \"Cigna\": {\n    \"AZ\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"CA\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"CO\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"CT\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"DC\": { \"PPO\": true, \"HMO\": false },\n    \"DE\": { \"PPO\": true, \"HMO\": false },\n    \"FL\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"GA\": { \"PPO\": true, \"HMO\": false },\n    \"IL\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"IN\": { \"PPO\": true, \"HMO\": false },\n    \"MA\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"MD\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"MI\": { \"PPO\": true, \"HMO\": false },\n    \"MN\": { \"PPO\": true, \"HMO\": false },\n    \"MO\": { \"PPO\": true, \"HMO\": false },\n    \"NC\": { \"PPO\": true, \"HMO\": false },\n    \"NV\": { \"PPO\": true, \"HMO\": false },\n    \"NY\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"OH\": { \"PPO\": true, \"HMO\": false },\n    \"OK\": { \"PPO\": true, \"HMO\": false },\n    \"OR\": { \"PPO\": true, \"HMO\": false },\n    \"PA\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"TN\": { \"PPO\": true, \"HMO\": false },\n    \"TX\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"UT\": { \"PPO\": true, \"HMO\": false },\n    \"VA\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"WA\": { \"PPO\": true, \"HMO\": false },\n    \"WI\": { \"PPO\": true, \"HMO\": false }\n  },\n  \"United Healthcare\": {\n    \"AZ\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"CA\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"CO\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"CT\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"DC\": { \"PPO\": true, \"HMO\": false },\n    \"DE\": { \"PPO\": true, \"HMO\": false },\n    \"FL\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"GA\": { \"PPO\": true, \"HMO\": false },\n    \"IL\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"IN\": { \"PPO\": true, \"HMO\": false },\n    \"MA\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"MD\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"MI\": { \"PPO\": true, \"HMO\": false },\n    \"MN\": { \"PPO\": true, \"HMO\": false },\n    \"MO\": { \"PPO\": true, \"HMO\": false },\n    \"NC\": { \"PPO\": true, \"HMO\": false },\n    \"NV\": { \"PPO\": true, \"HMO\": false },\n    \"NY\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"OH\": { \"PPO\": true, \"HMO\": false },\n    \"OK\": { \"PPO\": true, \"HMO\": false },\n    \"OR\": { \"PPO\": true, \"HMO\": false },\n    \"PA\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"TN\": { \"PPO\": true, \"HMO\": false },\n    \"TX\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"UT\": { \"PPO\": true, \"HMO\": false },\n    \"VA\": { \"PPO\": true, \"HMO\": \"conditional\" },\n    \"WA\": { \"PPO\": true, \"HMO\": false },\n    \"WI\": { \"PPO\": true, \"HMO\": false }\n  },\n  \"Blue Cross Blue Shield\": {\n    \"AZ\": { \"PPO\": true, \"HMO\": false },\n    \"FL\": { \"PPO\": true, \"HMO\": false },\n    \"GA\": { \"PPO\": true, \"HMO\": false },\n    \"IL\": { \"PPO\": true, \"HMO\": false },\n    \"MA\": { \"PPO\": true, \"HMO\": false },\n    \"MI\": { \"PPO\": true, \"HMO\": false },\n    \"MN\": { \"PPO\": true, \"HMO\": false },\n    \"NC\": { \"PPO\": true, \"HMO\": false },\n    \"OK\": { \"PPO\": true, \"HMO\": false },\n    \"TX\": { \"PPO\": true, \"HMO\": false }\n  },\n  \"Anthem\": {\n    \"CA\": { \"PPO\": true, \"HMO\": false },\n    \"CO\": { \"PPO\": true, \"HMO\": false },\n    \"CT\": { \"PPO\": true, \"HMO\": false },\n    \"IN\": { \"PPO\": true, \"HMO\": false },\n    \"MO\": { \"PPO\": true, \"HMO\": false },\n    \"NV\": { \"PPO\": true, \"HMO\": false },\n    \"NY\": { \"PPO\": true, \"HMO\": false },\n    \"OH\": { \"PPO\": true, \"HMO\": false },\n    \"VA\": { \"PPO\": true, \"HMO\": false },\n    \"WI\": { \"PPO\": true, \"HMO\": false }\n  },\n  \"Humana\": {\n    \"AZ\": { \"PPO\": true, \"HMO\": false },\n    \"CA\": { \"PPO\": true, \"HMO\": false },\n    \"CO\": { \"PPO\": true, \"HMO\": false },\n    \"CT\": { \"PPO\": true, \"HMO\": false },\n    \"DC\": { \"PPO\": true, \"HMO\": false },\n    \"DE\": { \"PPO\": true, \"HMO\": false },\n    \"FL\": { \"PPO\": true, \"HMO\": false },\n    \"GA\": { \"PPO\": true, \"HMO\": false },\n    \"IL\": { \"PPO\": true, \"HMO\": false },\n    \"IN\": { \"PPO\": true, \"HMO\": false },\n    \"MA\": { \"PPO\": true, \"HMO\": false },\n    \"MD\": { \"PPO\": true, \"HMO\": false },\n    \"MI\": { \"PPO\": true, \"HMO\": false },\n    \"MN\": { \"PPO\": true, \"HMO\": false },\n    \"MO\": { \"PPO\": true, \"HMO\": false },\n    \"NC\": { \"PPO\": true, \"HMO\": false },\n    \"NV\": { \"PPO\": true, \"HMO\": false },\n    \"NY\": { \"PPO\": true, \"HMO\": false },\n    \"OH\": { \"PPO\": true, \"HMO\": false },\n    \"OK\": { \"PPO\": true, \"HMO\": false },\n    \"OR\": { \"PPO\": true, \"HMO\": false },\n    \"PA\": { \"PPO\": true, \"HMO\": false },\n    \"TN\": { \"PPO\": true, \"HMO\": false },\n    \"TX\": { \"PPO\": true, \"HMO\": false },\n    \"UT\": { \"PPO\": true, \"HMO\": false },\n    \"VA\": { \"PPO\": true, \"HMO\": false },\n    \"WA\": { \"PPO\": true, \"HMO\": false },\n    \"WI\": { \"PPO\": true, \"HMO\": false }\n  },\n  \"Kaiser Permanente\": {\n    \"CA\": { \"PPO\": true, \"HMO\": true, \"note\": \"Only LA/IE/OC areas\" }\n  },\n  \"Molina Healthcare\": {\n    \"AZ\": { \"PPO\": true, \"HMO\": true },\n    \"CA\": { \"PPO\": true, \"HMO\": true },\n    \"FL\": { \"PPO\": true, \"HMO\": true },\n    \"IL\": { \"PPO\": true, \"HMO\": true },\n    \"MI\": { \"PPO\": true, \"HMO\": true },\n    \"NV\": { \"PPO\": true, \"HMO\": true },\n    \"NY\": { \"PPO\": true, \"HMO\": true },\n    \"OH\": { \"PPO\": true, \"HMO\": true },\n    \"TX\": { \"PPO\": true, \"HMO\": true },\n    \"UT\": { \"PPO\": true, \"HMO\": true },\n    \"WA\": { \"PPO\": false, \"HMO\": false, \"note\": \"Not accepted in WA\" },\n    \"WI\": { \"PPO\": true, \"HMO\": true }\n  }\n};\n\n// Function to normalize insurance names (with validation)\nfunction normalizeInsuranceName(name) {\n  if (!name || typeof name !== 'string') {\n    return '';\n  }\n\n  const normalizations = {\n    'cigna': 'Cigna',\n    'aetna': 'Aetna',\n    'united': 'United Healthcare',\n    'unitedhealthcare': 'United Healthcare',\n    'uhc': 'United Healthcare',\n    'blue cross': 'Blue Cross Blue Shield',\n    'bcbs': 'Blue Cross Blue Shield',\n    'bluecross': 'Blue Cross Blue Shield',\n    'blue shield': 'Blue Cross Blue Shield',\n    'anthem': 'Anthem',\n    'humana': 'Humana',\n    'kaiser': 'Kaiser Permanente',\n    'molina': 'Molina Healthcare'\n  };\n\n  const lower = name.toLowerCase().trim();\n\n  // Exact match\n  if (normalizations[lower]) {\n    return normalizations[lower];\n  }\n\n  // Partial match\n  for (const [key, value] of Object.entries(normalizations)) {\n    if (lower.includes(key)) {\n      return value;\n    }\n  }\n\n  return name;\n}\n\n// === MAIN EXECUTION WITH ERROR HANDLING ===\ntry {\n  // n8n AI Agent passes the input as a JSON string in 'query'\n  let parsedInput = {};\n  const rawQuery = query;\n\n  // Try to parse the query if it's a JSON string\n  if (rawQuery) {\n    try {\n      if (typeof rawQuery === 'string') {\n        parsedInput = JSON.parse(rawQuery);\n      } else if (typeof rawQuery === 'object') {\n        parsedInput = rawQuery;\n      }\n    } catch (parseError) {\n      // If parsing fails, assume it's a simple string query\n      parsedInput = { insurance_name: rawQuery };\n    }\n  }\n\n  // Extract parameters from parsed input\n  const insuranceName = parsedInput.insurance_name || '';\n  const state = parsedInput.state || '';\n  const planType = parsedInput.plan_type || 'UNKNOWN';\n\n  // Validate required inputs\n  if (!insuranceName) {\n    return JSON.stringify({\n      status: 'error',\n      message: 'Please specify which insurance company you\\'re asking about (e.g., Cigna, Aetna, United Healthcare).',\n      accepted: false,\n      error: 'missing_insurance_name',\n      debug: {\n        rawQuery: query,\n        typeOfQuery: typeof query,\n        parsedInput: parsedInput,\n        receivedValues: {\n          insuranceName: insuranceName,\n          state: state,\n          planType: planType\n        }\n      }\n    });\n  }\n\n  if (!state) {\n    return JSON.stringify({\n      status: 'error',\n      message: 'I need to know what state you\\'re in to check insurance coverage. Could you provide your ZIP code?',\n      accepted: false,\n      error: 'missing_state',\n      debug: {\n        rawQuery: query,\n        typeOfQuery: typeof query,\n        parsedInput: parsedInput,\n        receivedValues: {\n          insuranceName: insuranceName,\n          state: state,\n          planType: planType\n        }\n      }\n    });\n  }\n\n  // Normalize insurance name\n  const normalizedName = normalizeInsuranceName(insuranceName);\n\n  // Check if we have data for this insurance\n  if (!insuranceData[normalizedName]) {\n    return JSON.stringify({\n      status: 'unknown_insurance',\n      message: `I don't have specific coverage information for ${insuranceName}. Please call Luna at 855-475-LUNA to verify your coverage, or we can check during the booking process.`,\n      accepted: 'unknown',\n      needsVerification: true,\n      bookingAction: 'proceed_with_verification'\n    });\n  }\n\n  // Get state-specific coverage\n  const stateData = insuranceData[normalizedName][state.toUpperCase()];\n\n  if (!stateData) {\n    return JSON.stringify({\n      status: 'not_in_state',\n      message: `Unfortunately, ${insuranceName} is not accepted in ${state} for Luna Physical Therapy services. However, we offer affordable self-pay options starting at $150 per session. Would you like to learn more about our self-pay rates?`,\n      accepted: false,\n      offerAlternatives: true,\n      bookingAction: 'offer_self_pay'\n    });\n  }\n\n  const ppoAccepted = stateData.PPO === true;\n  const hmoAccepted = stateData.HMO === true;\n  const hmoConditional = stateData.HMO === 'conditional';\n\n  // Handle specific plan types when user mentions them\n  if (planType === 'PPO' && ppoAccepted) {\n    return JSON.stringify({\n      status: 'accepted',\n      message: `Perfect! Your ${insuranceName} PPO plan is accepted in ${state}. You're all set to book your appointment! Are you ready to start booking?`,\n      accepted: true,\n      bookingAction: 'proceed_to_booking',\n      nextStep: 'ready_to_book'\n    });\n  }\n\n  if (planType === 'HMO') {\n    if (hmoAccepted) {\n      return JSON.stringify({\n        status: 'accepted',\n        message: `Great news! Your ${insuranceName} HMO plan is accepted in ${state}. Let's get you scheduled! Are you ready to start booking?`,\n        accepted: true,\n        bookingAction: 'proceed_to_booking',\n        nextStep: 'ready_to_book'\n      });\n    }\n    if (hmoConditional) {\n      return JSON.stringify({\n        status: 'conditional',\n        message: `${insuranceName} HMO coverage in ${state} depends on your specific plan. Most of our patients with ${insuranceName} HMO are covered. Would you like to start the booking process and we'll verify your specific plan?`,\n        accepted: 'conditional',\n        bookingAction: 'proceed_with_verification',\n        nextStep: 'verify_during_booking'\n      });\n    }\n    return JSON.stringify({\n      status: 'not_accepted',\n      message: `Unfortunately, ${insuranceName} HMO plans are not accepted in ${state}. However, we offer competitive self-pay options. Our rates are often comparable to high-deductible insurance plans. Would you like to hear about our self-pay pricing?`,\n      accepted: false,\n      bookingAction: 'offer_self_pay'\n    });\n  }\n\n  // User didn't specify plan type - provide smart response based on coverage\n  if (ppoAccepted && hmoAccepted) {\n    return JSON.stringify({\n      status: 'both_accepted',\n      message: `Excellent! ${insuranceName} is fully accepted in ${state} for both PPO and HMO plans. You're covered regardless of your plan type! Are you ready to start booking your appointment?`,\n      accepted: true,\n      bookingAction: 'proceed_to_booking',\n      nextStep: 'ready_to_book'\n    });\n  }\n\n  if (ppoAccepted && !hmoAccepted && !hmoConditional) {\n    return JSON.stringify({\n      status: 'ppo_only',\n      message: `Good news! ${insuranceName} is accepted in ${state}, but only for PPO plans. Could you check your insurance card - does it say \"PPO\" anywhere on it? If yes, you're all set to book!`,\n      accepted: 'partial',\n      bookingAction: 'ask_plan_type',\n      followUp: 'If you have PPO, we can proceed with booking. If it\\'s HMO, we\\'ll discuss self-pay options.'\n    });\n  }\n\n  if (ppoAccepted && hmoConditional) {\n    return JSON.stringify({\n      status: 'mixed',\n      message: `${insuranceName} is accepted in ${state}! PPO plans are definitely covered, and many HMO plans are accepted too. Since most of our ${insuranceName} patients are covered, would you like to start booking and we'll verify your specific plan during the process?`,\n      accepted: 'mostly',\n      bookingAction: 'proceed_with_verification',\n      nextStep: 'verify_during_booking'\n    });\n  }\n\n  // Fallback response\n  return JSON.stringify({\n    status: 'needs_verification',\n    message: `I need to verify your specific ${insuranceName} plan coverage in ${state}. Let's start the booking process and verify your coverage - it only takes a minute and most patients are covered. Are you ready to proceed?`,\n    accepted: 'unknown',\n    bookingAction: 'proceed_with_verification',\n    nextStep: 'verify_during_booking'\n  });\n\n} catch (error) {\n  return JSON.stringify({\n    status: 'error',\n    message: 'I\\'m having trouble checking your insurance right now. Please call Luna at 855-475-LUNA for immediate assistance with insurance verification.',\n    accepted: 'unknown',\n    error: error.message,\n    bookingAction: 'contact_luna',\n    debug: {\n      rawQuery: query,\n      typeOfQuery: typeof query,\n      errorMessage: error.message,\n      errorStack: error.stack\n    }\n  });\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        272,
+        1536
+      ],
+      "id": "6dff1752-48b7-4784-8309-0c99acb7e86e",
+      "name": "check_insurance_coverage"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Frontend Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client Prod": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check_insurance_coverage": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1a256504-d33e-4091-8e5d-539bed0d863f",
+  "meta": {
+    "templateId": "self-building-ai-agent",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5412e14db4cff5b06ab457b0f63e57ed91bfee5d88b5361c28520996e780eae3"
+  },
+  "id": "JBeuoNMpiGGE2X6k",
+  "tags": [
+    {
+      "createdAt": "2025-09-22T13:30:09.614Z",
+      "updatedAt": "2025-09-22T13:30:09.614Z",
+      "id": "Fn0wpgqsZzsy0TLP",
+      "name": "dev"
+    }
+  ]
+}

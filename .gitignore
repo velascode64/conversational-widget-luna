@@ -52,3 +52,6 @@ packages/*/*.log
 packages/*/.env*
 packages/*/coverage/
 packages/*/dist/
+
+# Sensitive test files with API keys
+packages/qadrant-knowledgebase/test_qdrant.py
