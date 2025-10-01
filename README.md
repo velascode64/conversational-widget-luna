@@ -1,6 +1,6 @@
-# Doubleo Chat Widget
+# Luna Chat Widget (Migrated from DoubleO)
 
-A customizable, embeddable chat widget built with Next.js for integrating AI-powered conversations into any website. The widget provides a floating chat interface with real-time message streaming and responsive design.
+A customizable, embeddable chat widget built with Next.js for integrating AI-powered conversations into any website. Originally built for DoubleO, this widget has been migrated to use n8n workflow automation for Luna Physical Therapy's customer support chatbot. The widget provides a floating chat interface with real-time message streaming and responsive design.
 
 ## Features
 
@@ -11,6 +11,45 @@ A customizable, embeddable chat widget built with Next.js for integrating AI-pow
 - 🎯 **Easy integration** - Simple JavaScript snippet for embedding
 - 📝 **Markdown support** - Rich text formatting in messages
 
+## Architecture Overview
+
+### Migration from DoubleO to n8n
+
+This project has been successfully migrated from the DoubleO chat platform to n8n workflow automation. The migration enables:
+
+- **Self-hosted workflow management** - Full control over conversation flows and integrations
+- **Visual workflow builder** - Easy modification of chat logic without code changes
+- **Webhook-based communication** - Real-time message processing via n8n webhooks
+- **Advanced AI capabilities** - Integration with OpenAI GPT models and Qdrant vector store for knowledge base
+- **Custom tools and MCP clients** - Extended functionality for insurance verification and service coverage checks
+
+### n8n Workflow Components
+
+The n8n workflow (`packages/n8n-luna-agent/luna_chat.json`) implements:
+
+1. **Webhook Endpoints**
+   - Frontend webhook (`/webhook/4c44d7e1-cae5-4b26-853b-ae109d20a67d`) - Receives messages from the chat widget
+   - Chat trigger for interactive conversations
+
+2. **AI Agent with Memory**
+   - OpenAI GPT-4.1-mini model for natural language processing
+   - Session-based memory management with 10-message context window
+   - Custom system prompts for Luna Physical Therapy's virtual care coordinator
+
+3. **Knowledge Base Integration**
+   - Qdrant vector store for FAQ retrieval
+   - OpenAI embeddings for semantic search
+   - Intelligent tool usage based on query type
+
+4. **Custom Tools**
+   - `check_insurance_coverage` - JavaScript tool for real-time insurance verification
+   - MCP Client integrations for service coverage checks
+   - ZIP code validation for appointment booking
+
+5. **Response Handling**
+   - Webhook response node for sending messages back to the widget
+   - Structured JSON responses with booking actions and follow-up prompts
+
 ## Installation
 
 ### For Website Integration
@@ -18,33 +57,32 @@ A customizable, embeddable chat widget built with Next.js for integrating AI-pow
 Add the following script tag to your website where you want the chat widget to appear:
 
 ```html
-<script 
+<script
   src="https://your-domain.com/chat-widget.js"
-  data-api-key="your-api-key"
-  data-chat-id="your-chat-id"
+  data-webhook-url="https://neowork.app.n8n.cloud/webhook/4c44d7e1-cae5-4b26-853b-ae109d20a67d"
+  data-auth-header="Basic bHVuYTpsdW5hMjAyNQ=="
   async>
 </script>
 ```
 
 Replace:
-- `https://your-domain.com` with your deployed widget domain
-- `your-api-key` with your doubleo API key
-- `your-chat-id` with your specific chat configuration ID
+- `https://your-domain.com` with your deployed widget domain (recommended: Vercel)
+- Update webhook URL if using a different n8n instance
+- Configure authentication header for your n8n webhook security
 
-### For Development
+3. Configure environment variables:
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd doubleo-chat-widget
+Create a `.env` file in the root directory with:
+
+```env
+# n8n Webhook Configuration
+N8N_WEBHOOK_KEY=your-webhook-security-key
+NEXT_PUBLIC_N8N_WEBHOOK_URL=https://neowork.app.n8n.cloud/webhook/4c44d7e1-cae5-4b26-853b-ae109d20a67d
+NEXT_PUBLIC_N8N_AUTH=Basic bHVuYTpsdW5hMjAyNQ==
+NEXT_PUBLIC_API_URL=http://localhost:3000/api
 ```
 
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Start the development server:
+4. Start the development server:
 ```bash
 npm run dev
 ```
@@ -60,12 +98,24 @@ The widget supports the following customization options:
 - **Primary Color**: Main accent color for buttons and active elements (default: `#000000`)
 - **Secondary Color**: Background color for the widget (default: `#fefcf8`)
 
-### API Requirements
+### Environment Variables
+
+| Variable | Description | Example |
+|----------|-------------|----------|
+| `N8N_WEBHOOK_KEY` | Security key for n8n webhook authentication | `aJVnrGetL$aA2L972$$R**l*CU$` |
+| `NEXT_PUBLIC_N8N_WEBHOOK_URL` | n8n webhook endpoint for message processing | `https://neowork.app.n8n.cloud/webhook/...` |
+| `NEXT_PUBLIC_N8N_AUTH` | Base64 encoded Basic Auth header for n8n | `Basic bHVuYTpsdW5hMjAyNQ==` |
+| `NEXT_PUBLIC_API_URL` | Backend API URL for widget services | `http://localhost:3001/api` |
+
+### n8n Workflow Requirements
 
 The widget requires:
-- A valid API key for authentication
-- A chat ID identifying the specific chat configuration
-- Access to the doubleo chat API endpoints
+- n8n instance with the Luna chatbot workflow imported (`packages/n8n-luna-agent/luna_chat.json`)
+- Configured credentials for:
+  - OpenAI API (GPT-4.1-mini model access)
+  - Qdrant vector database
+  - MCP Client authentication headers
+- Active webhook endpoints with proper CORS configuration
 
 ## Usage
 
@@ -96,14 +146,6 @@ public/
 └── chat-widget.js        # Embeddable JavaScript widget script
 ```
 
-## Development
-
-### Available Scripts
-
-- `npm run dev` - Start development server with Turbopack
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
 
 ### Key Technologies
 
@@ -116,13 +158,70 @@ public/
 
 ## Deployment
 
-1. Build the project:
+### Recommended: Vercel Deployment
+
+This widget is optimized for deployment on Vercel:
+
+1. Install Vercel CLI:
 ```bash
-npm run build
+npm i -g vercel
 ```
 
-2. Deploy to your preferred hosting platform (Vercel, Netlify, etc.)
+2. Build and deploy:
+```bash
+npm run build
+vercel --prod
+```
 
-3. Ensure the `chat-widget.js` file is accessible at `/chat-widget.js`
+3. Set environment variables in Vercel dashboard:
+   - Go to Project Settings → Environment Variables
+   - Add all variables from `.env` file
+   - Redeploy for changes to take effect
 
-4. Update your embed script to point to your deployed domain
+### n8n Workflow Setup
+
+1. Import the workflow:
+   - Open your n8n instance
+   - Go to Workflows → Import
+   - Upload `packages/n8n-luna-agent/luna_chat.json`
+
+2. Configure credentials:
+   - OpenAI API: Add your OpenAI API key
+   - Qdrant: Configure vector database connection
+   - MCP Headers: Set up authentication for Luna services
+
+3. Activate the workflow:
+   - Click "Activate" to enable webhook endpoints
+   - Test webhook connectivity from the widget
+
+4. Update widget configuration:
+   - Ensure the `chat-widget.js` file is accessible at `/chat-widget.js`
+   - Update embed script with your Vercel domain and n8n webhook URL
+
+## How the n8n Integration Works
+
+### Message Flow
+
+1. **User Input**: User types a message in the chat widget
+2. **Webhook Request**: Widget sends POST request to n8n webhook with:
+   - `message`: User's text
+   - `sessionId`: Unique session identifier for conversation continuity
+3. **AI Processing**: n8n workflow processes the message:
+   - Retrieves conversation history from memory buffer
+   - Analyzes query type to determine tool usage
+   - Searches knowledge base if needed
+   - Generates contextual response
+4. **Tool Execution**: Based on user intent, executes:
+   - Insurance coverage verification
+   - ZIP code service area checks
+   - Appointment booking flow initiation
+5. **Response Delivery**: Formatted response sent back to widget
+   - Includes message text, booking actions, and follow-up prompts
+
+### Key Features
+
+- **Intelligent Tool Selection**: AI agent determines when to use vector search vs. built-in knowledge
+- **Session Management**: Maintains conversation context across multiple messages
+- **Multi-step Workflows**: Guides users through insurance verification and booking processes
+- **Fallback Handling**: Gracefully handles unknown queries with escalation to human support
+- **Real-time Processing**: Webhook-based architecture ensures instant responses
