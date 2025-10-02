@@ -4,23 +4,33 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const n8nUrl = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL;
-    const n8nAuth = process.env.NEXT_PUBLIC_N8N_AUTH;
+    const { apiKey, chatId, ...restBody } = body;
 
-    if (!n8nUrl || !n8nAuth) {
+    if (!apiKey || !chatId) {
       return NextResponse.json(
-        { error: 'N8N configuration missing' },
+        { error: 'API key and chat ID are required' },
+        { status: 400 }
+      );
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL;
+    if (!baseUrl) {
+      return NextResponse.json(
+        { error: 'N8N base URL not configured' },
         { status: 500 }
       );
     }
+
+    const n8nUrl = baseUrl + chatId;
+    const n8nAuth = apiKey;
 
     const response = await fetch(n8nUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': n8nAuth,
+        'X-API-KEY': n8nAuth,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(restBody),
     });
 
     if (!response.ok) {

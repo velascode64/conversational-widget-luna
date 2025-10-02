@@ -5,17 +5,21 @@ import { sendMessageToN8n } from "../n8n/api";
 interface ChatCompletionParams {
   conversationId: string | null | undefined;
   content: string | null | undefined;
+  apiKey?: string;
+  chatId?: string;
 }
 
 async function completionStreamN8n({
   conversationId,
   content,
+  apiKey,
+  chatId,
 }: ChatCompletionParams) {
   if (!conversationId || !content) {
     throw new Error("Missing required parameters");
   }
 
-  const response = await sendMessageToN8n(content, conversationId);
+  const response = await sendMessageToN8n(content, conversationId, apiKey, chatId);
 
   const fakeStreamResponse = new Response(
     new ReadableStream({

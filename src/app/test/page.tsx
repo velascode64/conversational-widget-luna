@@ -6,11 +6,11 @@ export default function TestPage() {
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "/api/embed";
-    script.dataset.apiKey = "test-api-key";
-    script.dataset.chatId = "test-chat-id";
+    script.dataset.apiKey = "bHVuYTpsdW5hMjAyNQ";
+    script.dataset.chatId = "4c44d7e1-cae5-4b26-853b-ae109d20a67d";
     script.async = true;
     document.body.appendChild(script);
-
+  
     return () => {
       const existingScript = document.querySelector('script[src="/api/embed"]');
       if (existingScript) {

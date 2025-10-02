@@ -76,10 +76,7 @@ Create a `.env` file in the root directory with:
 
 ```env
 # n8n Webhook Configuration
-N8N_WEBHOOK_KEY=your-webhook-security-key
-NEXT_PUBLIC_N8N_WEBHOOK_URL=https://neowork.app.n8n.cloud/webhook/4c44d7e1-cae5-4b26-853b-ae109d20a67d
-NEXT_PUBLIC_N8N_AUTH=Basic bHVuYTpsdW5hMjAyNQ==
-NEXT_PUBLIC_API_URL=http://localhost:3000/api
+
 ```
 
 4. Start the development server:
@@ -98,14 +95,7 @@ The widget supports the following customization options:
 - **Primary Color**: Main accent color for buttons and active elements (default: `#000000`)
 - **Secondary Color**: Background color for the widget (default: `#fefcf8`)
 
-### Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|----------|
-| `N8N_WEBHOOK_KEY` | Security key for n8n webhook authentication | `aJVnrGetL$aA2L972$$R**l*CU$` |
-| `NEXT_PUBLIC_N8N_WEBHOOK_URL` | n8n webhook endpoint for message processing | `https://neowork.app.n8n.cloud/webhook/...` |
-| `NEXT_PUBLIC_N8N_AUTH` | Base64 encoded Basic Auth header for n8n | `Basic bHVuYTpsdW5hMjAyNQ==` |
-| `NEXT_PUBLIC_API_URL` | Backend API URL for widget services | `http://localhost:3001/api` |
 
 ### n8n Workflow Requirements
 

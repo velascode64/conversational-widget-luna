@@ -1,44 +1,53 @@
 export interface N8nChatRequest {
   message: string;
   sessionId: string;
+  apiKey?: string;
+  chatId?: string;
 }
 
 export interface N8nChatResponse {
   output: string;
 }
 
-const N8N_WEBHOOK_URL = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL ||
-  'https://neowork.app.n8n.cloud/webhook/4c44d7e1-cae5-4b26-853b-ae109d20a67d';
-
-const N8N_AUTH_HEADER = process.env.NEXT_PUBLIC_N8N_AUTH ||
-  'Basic bHVuYTpsdW5hMjAyNQ==';
-
 export async function sendMessageToN8n(
   message: string,
-  sessionId: string
+  sessionId: string,
+  apiKey?: string,
+  chatId?: string
 ): Promise<N8nChatResponse> {
   // Usar proxy interno en producción para evitar ERR_BLOCKED_BY_CLIENT
   const isProduction = typeof window !== 'undefined' && window.location.origin.includes('vercel');
-  const apiUrl = isProduction ? '/api/n8n-proxy' : N8N_WEBHOOK_URL;
+
+  // In development, construct URL directly; in production, use proxy
+  const baseUrl = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || 'https://neowork.app.n8n.cloud/webhook/';
+  const apiUrl = isProduction ? '/api/n8n-proxy' : baseUrl + (chatId || '4c44d7e1-cae5-4b26-853b-ae109d20a67d');
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
 
-  // Solo agregar auth si no usamos proxy
-  if (!isProduction) {
-    headers['Authorization'] = N8N_AUTH_HEADER;
+  // Solo agregar auth si no usamos proxy (desarrollo)
+  if (!isProduction && apiKey) {
+    headers['X-API-KEY'] = apiKey;
   }
 
   console.log('Sending to:', apiUrl, 'isProduction:', isProduction);
 
+  const requestBody: N8nChatRequest = {
+    message,
+    sessionId,
+  };
+
+  // Include apiKey and chatId in request body when using proxy (production)
+  if (isProduction && apiKey && chatId) {
+    requestBody.apiKey = apiKey;
+    requestBody.chatId = chatId;
+  }
+
   const response = await fetch(apiUrl, {
     method: 'POST',
     headers,
-    body: JSON.stringify({
-      message,
-      sessionId,
-    } as N8nChatRequest),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
@@ -60,9 +69,11 @@ export async function sendMessageToN8n(
 export async function streamMessageToN8n(
   message: string,
   sessionId: string,
-  onChunk: (chunk: string) => void
+  onChunk: (chunk: string) => void,
+  apiKey?: string,
+  chatId?: string
 ): Promise<void> {
-  const response = await sendMessageToN8n(message, sessionId);
+  const response = await sendMessageToN8n(message, sessionId, apiKey, chatId);
 
   const chunks = response.output.split(' ');
   for (const chunk of chunks) {
@@ -75,12 +86,15 @@ export async function streamMessageToN8n(
  * Obtiene el mensaje de bienvenida del bot N8N sin crear una conversación persistente
  * Esta función se usa solo para obtener el saludo inicial
  */
-export async function getWelcomeMessageFromN8n(): Promise<string> {
+export async function getWelcomeMessageFromN8n(
+  apiKey?: string,
+  chatId?: string
+): Promise<string> {
   try {
     // Usar un sessionId temporal solo para obtener la bienvenida
     const tempSessionId = `welcome-${Date.now()}`;
 
-    const response = await sendMessageToN8n("Welcome message", tempSessionId);
+    const response = await sendMessageToN8n("Welcome message", tempSessionId, apiKey, chatId);
 
     return response.output || "👋 Hello! How can I help you today?";
   } catch (error) {

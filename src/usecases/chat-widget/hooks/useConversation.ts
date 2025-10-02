@@ -120,6 +120,8 @@ export function useConversation({
     const response = await completionStream.mutateAsync({
       conversationId: convId,
       content,
+      apiKey,
+      chatId,
     });
 
     // Insert response in the conversations list
